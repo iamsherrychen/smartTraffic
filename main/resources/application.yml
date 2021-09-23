@@ -1,0 +1,86 @@
+server:
+  port: 8080
+  tomcat:
+    accesslog:
+      enabled: true # Enable access log.
+      directory: ./tomcat_logs # Directory in which log files are created.
+      max-days: ${TOMCAT_LOG_MAX_DAY:7}
+      rotate: true
+      rename-on-rotate: true
+      #buffered: false
+
+spring:
+  profiles:
+    active: dev
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.wistron.swpc.wismarttrafficlight.entity
+  configuration:
+    map-underscore-to-camel-case: true
+
+api:
+  address: ${ADDRESS}
+  travel_time: https://data.tycg.gov.tw/api/v1/rest/datastore/768536a2-fefb-4d16-9d88-7abcd7060a56?format=json
+  travel_time_xml: http://61.60.10.87/javaAndXml/xmldata/tyc_avi_value.xml
+  base_url_route_api: http://osrm-backend:5000
+  base_uri_openstreetmap_api: https://api.openstreetmap.org
+  travel_time_2: http://61.60.10.87/cptapi/Traffic/api/ETagPairLive?$format=json&$token=G7aZZgBpu4LeYZxZ9ShjHnYm3QSFC7g5hOugDmT
+  redirect: http://172.16.0.234/Account/Login
+
+license:
+  encode_rule: ${LICENSE_ENCODE_RULE}
+  google_api: YOUR_KEY
+
+token:
+  key: 102,29,-63,13,77,-48,-101,123,69,38,87,3,-37,121,-52,83,39,49,117,-62,55,71,122,74,94,21,81,-106,-19,15,9,70
+
+
+# ids:
+#   dazu:
+#     zzer_f_id: ${TRAVEL_TIME_ID_DAZU_ZZER_FORWARD}
+#     zzer_r_id: ${TRAVEL_TIME_ID_DAZU_ZZER_REVERSE}
+#     nqr_f_id: ${TRAVEL_TIME_ID_DAZU_NQR_FORWARD}
+#     nqr_r_id_1: ${TRAVEL_TIME_ID_DAZU_NQR_REVERSE_1}
+#     nqr_r_id_2: ${TRAVEL_TIME_ID_DAZU_NQR_REVERSE_2}
+#     nqr_turn_zzer_f_id: ${TRAVEL_TIME_ID_DAZU_NQR_TURN_ZZER_FORWARD}
+#     nqr_turn_zzer_r_id: ${TRAVEL_TIME_ID_DAZU_NQR_TURN_ZZER_REVERSE}
+#     start_intersection_id: ${START_INTERSECTION_ID_DAZU}
+#     end_intersection_id: ${END_INTERSECTION_ID_DAZU}
+#     zzer:
+#       start_intersection_id: ${START_INTERSECTION_ID_ZZER_DAZU}
+#       end_intersection_id: ${END_INTERSECTION_ID_ZZER_DAZU}
+
+#   dayuan:
+#     east_id: ${TRAVEL_TIME_ID_DAYUAN_EAST}
+#     west_id: ${TRAVEL_TIME_ID_DAYUAN_WEST}
+#     start_intersection_id: ${START_INTERSECTION_ID_DAYUAN}
+#     end_intersection_id: ${END_INTERSECTION_ID_DAYUAN}
+
+ids:
+  dazu:
+    zzer_f_id: 10471
+    zzer_r_id: EA05100_EA05101
+    nqr_f_id: EA14814_EA14811
+    nqr_r_id_1: E729350_E245155
+    nqr_r_id_2: E245156_EA14850
+    nqr_turn_zzer_f_id: E729350_EA04745
+    nqr_turn_zzer_r_id: EA05100_EA14811
+    start_intersection_id: H33700302-0-PC01
+    end_intersection_id: H33700301-0-PC01
+    zzer:
+      start_intersection_id: H33700303
+      end_intersection_id: H33700304
+
+  dayuan:
+    east_id: 108011
+    west_id: 108010
+    start_intersection_id: H33700401
+    end_intersection_id: H33701801
+    
+  speed_status_limit: ${SPEED_STATUS_LIMIT}
+  space_status_limit: ${SPACE_STATUS_LIMIT}
+  basic_speed: ${BASIC_SPEED}
+
+traffic:
+  time_zone: ${JAVA_TIME_ZONE}

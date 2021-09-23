@@ -1,0 +1,20 @@
+html {
+    overflow: -moz-hidden-unscrollable;
+    width:  auto;
+    height: auto;
+}
+
+body::-webkit-scrollbar {
+    display: none;
+}
+
+body {
+	background:#000;
+	color:white;
+    -ms-overflow-style: none;
+	width: calc(100% - 20px);
+    height: 100%;	
+	overflow: auto;
+}
+
+img {border: 0;}

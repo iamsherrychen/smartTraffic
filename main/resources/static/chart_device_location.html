@@ -1,0 +1,263 @@
+<html>
+
+<head>
+	<meta http-equiv="Content-Type"  X-Content-Type-Options="nosniff" content="text/html; charset=utf-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>設備位置圖</title>
+	<link type="text/css" rel="stylesheet" href="css/common.css" />
+	<link rel="stylesheet" href="css/leaflet.css" />
+	<script src="js/env.js"></script>
+	<script src="js/common.js"></script>
+	<script src="js/leaflet.js"></script>
+	<script src="js/stomp.min.js"></script>
+	<script type="text/javascript" src="js/jquery-1.11.0.min.js"></script>
+	<style type="text/css">
+		body {
+			/* background: rgba(0,0,0,.65); */
+			/* height: 908px; */
+			/* width: 1467px; */
+		}
+		#mapid {
+			height: 1020px; 
+			width: 100%;
+			z-index: 1;
+			/* position: absolute; */
+		}
+		.link-top {
+            /* width: 10%; */
+            height: 1px;
+            border-top: solid #ACC0D8 1px;
+		}
+		.device{
+			/* max-width: 100%;
+			max-height: 100%;
+			width: auto;
+			height: auto;
+			display: inline-block; */
+			vertical-align: middle;
+		}
+		.header{
+			height: 60px;
+			background: #4FB3B54D 0% 0% no-repeat padding-box;
+			text-align: center;
+			font-size: 20px;
+			font-family: 微軟正黑體;
+			line-height: 60px;
+			color: white;
+			font-weight:bold;
+			/* width: 1467px; */
+		}
+		.compass {
+			right: 32px !important;
+		}
+		.leaflet-popup-content-wrapper, .leaflet-popup-tip{
+			background: #363636;
+		}
+		.leaflet-popup-content{
+			color: #FFFFFF;
+ 	  		font-size: 14px;
+		}
+	</style>	
+</head>
+
+<body>
+	<div >
+		<div class='back_link' style="top: 13px;">
+			<a href='#' id="back_link">
+				<img src="/img/btn_back.svg" alt=''>&nbsp;
+				<span>Back</span>
+			</a>
+		</div>
+		<div class="header">
+			<div class='intersection tab'>
+				<select id="intersection_select"></select>
+			</div>
+		</div>
+	</div>
+	<div id="mapid"></div>
+	<img src="/img/compass_b.svg" class="compass" alt="">
+	<div style="position: absolute;bottom: 32px;z-index: 2;left: 32px; "><img src="img/pic_mark_three.svg"/></div>
+</body>
+<script type="text/javascript">
+	var map;
+
+	var myArray= {};
+	var arr = [];
+	var intersection;
+	var myIcon = L.icon({
+		iconUrl: '/img/marker.svg',
+		iconSize:     [25, 41],
+		iconAnchor: [14, 48],
+		popupAnchor:  [5, -45]
+	});
+	$(function () {
+		// $("#intersection_name").html(getCookie("intersection_name"));
+		getCurrentIntersectionId().then(function (data) {
+			return makeIntersectionSelectBox();
+		}).then(function (data) {
+			return getIntersectionsLocation();
+		}).then(function (data) {
+			return getAllDeviceLocation();
+		}).catch(function (err) {
+			console.error(err);
+		});
+
+		$("#back_link").click(function () {
+			location.href = 'intersection.html';
+		});
+		$("#intersection_select").change(function() {
+			document.cookie = "intersection=" + $(this).val();
+			window.location.reload();
+		});
+	});
+
+	// Step 1. Get current intersection ID from cookie.
+	function getCurrentIntersectionId() {
+		var p = new Promise(function (resolve, reject) {
+			try {
+				intersection= getCookie("intersection");
+				resolve("Success in getCurrentIntersectionId().");
+			} catch (e) {
+				reject("Fail in getCurrentIntersectionId().");
+			}
+		});
+		return p;
+	}
+
+	// Step 2. Get all intersectioins' info to make the dropdown box.
+	function makeIntersectionSelectBox() {
+		var p = new Promise(function (resolve, reject) {
+			try {
+				var aj = $.ajax({
+					url: '../api/intersections', // 跳轉到 action 
+					type: 'get',
+					async: false,
+					cache: false,
+					dataType: 'json',
+					success: function(data) {
+						var content_html = "";
+						for (var ii in data.data) {
+							if((data.data[ii].id !== "H33700303") && (data.data[ii].id !== "H33700304")){
+								content_html += '<option value="' + data.data[ii].id + '">' + data.data[ii].name + '</option>'
+								if (intersection == data.data[ii].id) {
+									//東匝路口在現場登態圖不算十字路口，但是在車流量圖是算十字路口
+									document.cookie = "intersection_name=" + data.data[ii].name;
+								}
+							}
+						}
+						$("#intersection_select").html(content_html);
+						$('#intersection_select option[value=' + intersection+ ']').attr('selected', 'selected');
+
+					},
+					error: function(response) {
+						var message = response.responseJSON.data;
+            			alert(message);
+					},
+					complete: function() {}
+				});
+				resolve("Success in makeIntersectionSelectBox().");
+			} catch (e) {
+				reject("Fail in makeIntersectionSelectBox().");
+			}
+		});	
+		return p;	
+	}
+	
+	// Step 4.取得當前路口的所有設備的經緯度
+	function getAllDeviceLocation(){
+		var p = new Promise(function (resolve, reject) {
+			try {
+				var aj = $.ajax( { 
+					url:'../api/intersections/'+intersection+'/devices',// 跳轉到 action 
+					type:'get', 
+					async: false,
+					cache:false, 
+					dataType:'json', 
+					success:function(data) { 
+						msg=data.data;
+						// console.log(msg);
+						for( var k=0; k< msg.length;k++){
+							myArray= {}
+							myArray["type"]=msg[k].category;
+							myArray["point"]=""+msg[k].latitude+","+msg[k].longitude;
+							//攝影機顯示的icon
+							var category =msg[k].category;
+							if(msg[k].category=="PC" || msg[k].category=="VD"){
+								category="PC";
+							}else if(msg[k].category == "SD" || msg[k].category == "BL"){
+								category = "SD";
+							}else
+								category = "FE";
+
+							myArray['device_id']='<p><img class="device" src="/img/'+category+'.svg"/>'+msg[k].device_id+'</p>';
+							if(Object.values(arr).map(item => item.point).indexOf(myArray['point'])==-1){
+								arr.push(myArray);//找不到
+							}
+							else{
+								//找到相同經緯度的
+								var index =Object.values(arr).map(item => item.point).indexOf(myArray['point']);//相同座標的index
+								arr[index].device_id+='<div class="link-top"></div>'+myArray['device_id'];					
+							}
+						}
+						appendDevice(arr);
+					}, 
+					error: function(response) {
+						var message = response.responseJSON.data;
+            			alert(message);
+					}
+				});
+				resolve("Success in getAllDeviceLocation().");
+			} catch (e) {
+				reject("Fail in getAllDeviceLocation().");
+			}
+		});	
+		return p;	
+	}
+
+	//將各個設備位置畫在地圖上
+	function appendDevice(arr){
+		// console.log(arr);
+		for (var i = 0; i < arr.length; i++) { 
+			//获取经纬度
+			var lng = arr[i].point.split(",")[0];
+			var lat = arr[i].point.split(",")[1];
+			L.marker([lat,lng],{ icon: myIcon}).addTo(map).bindPopup(arr[i].device_id,{minWidth : 170});
+		}
+	}
+
+	// Step 3.取得當前路口的中心點經緯度，並載入地圖
+	function getIntersectionsLocation(){
+		var p = new Promise(function (resolve, reject) {
+			try {
+				var aj = $.ajax( { 
+					url:'../api/intersections/'+intersection,// 跳轉到 action 
+					type:'get', 
+					async: false,
+					cache:false, 
+					dataType:'json', 
+					success:function(data) { 
+						// console.log(data)
+						msg=data.data;
+						lng=msg.center_longitude;
+						lat=msg.center_latitude;
+						map = new L.map('mapid').setView([lat, lng], 18);
+						L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+							attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+						}).addTo(map);
+					}, 
+					error: function(response) {
+						var message = response.responseJSON.data;
+            			alert(message);
+					}
+				});
+				resolve("Success in getIntersectionsLocation().");
+			} catch (e) {
+				reject("Fail in getIntersectionsLocation().");
+			}
+		});	
+		return p;	
+	}
+  </script>
+</html>

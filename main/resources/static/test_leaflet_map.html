@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="Content-Type"  X-Content-Type-Options="nosniff" content="text/html; charset=utf-8">
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+	<link href="css/leaflet.css" rel="stylesheet">
+    <link href="css/leaflet.cusotm.css" rel="stylesheet">
+    
+	<script src="js/jquery-3.6.0.min.js"></script>
+
+	<script src="js/leaflet.js"></script>
+
+<style>
+
+    #mapid {
+        height: 1020px;
+        z-index: 1;
+    }
+
+
+</style>
+</head>
+<body>
+	<div id="mapid"></div>
+</body>
+<script>
+var map;
+
+var myIcon = L.icon({
+    iconUrl: '/img/icon_map.png',
+    iconAnchor: [29, 55],
+    popupAnchor: [0, -10]
+});
+
+$(function () { 
+    
+	// Load leftlet map
+    var map = L.map('mapid', {
+        center: [25.059953, 121.207199],
+        zoom: 18,
+        closePopupOnClick: false //點擊其他地方，popup不消失        
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var mrk_top = L.marker([25.059879, 121.209384], { icon: myIcon, win_url: "top" }).addTo(map);
+    var popup_marker = mrk_top.bindPopup('<div style="width:204px; height:184px;">top</div>', {
+        autoClose: false,
+        closeButton: false,
+        minWidth: 245,
+        maxHeight: 500,
+        className: "top"
+    }).openPopup();
+
+    var mrk_bottom = L.marker([25.059879, 121.209384], { icon: myIcon, win_url: "bottom" }).addTo(map);
+    var popup_marker = mrk_bottom.bindPopup('<div style="width:204px; height:184px;">bottom</div>', {
+        autoClose: false,
+        closeButton: false,
+        minWidth: 245,
+        maxHeight: 500,
+        className: "bottom"
+    }).openPopup();
+
+    var mrk_right = L.marker([25.059879, 121.209384], { icon: myIcon, win_url: "right" }).addTo(map);
+    var popup_marker = mrk_right.bindPopup('<div style="width:204px; height:184px;">right</div>', {
+        autoClose: false,
+        closeButton: false,
+        minWidth: 245,
+        maxHeight: 500,
+        className: "right"
+    }).openPopup();
+    
+    var mrk_left = L.marker([25.059879, 121.209384], { icon: myIcon, win_url: "right" }).addTo(map);
+    var popup_marker = mrk_left.bindPopup('<div style="width:204px; height:184px;">left</div>', {
+        autoClose: false,
+        closeButton: false,
+        minWidth: 245,
+        maxHeight: 500,
+        className: "left"
+    }).openPopup();
+});
+</script>
+</html>

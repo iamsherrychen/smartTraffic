@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>桃園市-民生南路</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
+<meta http-equiv="If-Modified-Since" content="Wed, 15 Nov 1995 04:58:08 GMT" />
+<meta http-equiv="Expires" content="Wed, 15 Nov 1995 04:58:08 GMT" />
+<meta http-equiv="Last-Modified" content="Wed, 15 Nov 1995 04:58:08 GMT" />
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
+<meta name="viewport" content="width=device-width, minimum-scale=0.1">
+<link rel="stylesheet" href="../css/common.css" type="text/css" media="screen">
+<script language="javascript" type='text/javascript' src='../scripts/common.js'></script>
+<script language="javascript">
+
+function loads()
+{
+   var winwidth=window.innerWidth-ow;
+   var winheight=window.innerHeight-oh;
+   
+   var p=ch;
+   
+   if(MinShengS_deviceida.length < ch)
+   {
+     p=MinShengS_deviceida.length;
+   }
+   
+   for (var i = 0; i < p; i++) {
+    var obj1 = document.getElementById(dida[i]);
+	obj1.innerHTML=MinShengS_deviceida[tmps];
+	
+    var obj2 = document.getElementById(imga[i]);
+    var imgSrc="http://"+ipa[pid]+":"+porta[pid]+"/"+MinShengS_patha[tmps]+"/"+mjpgpatha[pid];
+	
+	obj2.src = imgSrc;
+	obj2.srcset = imgSrc;	
+	obj2.style.width=winwidth/rw+ 'px';
+	obj2.style.height=winheight/rh+ 'px';	
+	
+	if(tmps==MinShengS_deviceida.length-1)
+	{
+	  tmps=0;
+	}
+	else
+	{
+	  tmps+=1;
+	}
+   }
+   
+   resizes();
+   
+  if(MinShengS_deviceida.length > ch)
+  {
+	setTimeout("loads()",t*1000); 
+  }
+}
+
+function refreshs()
+{
+  if(MinShengS_deviceida.length <= ch)
+  {
+    setTimeout("reloads()",ts*1000);
+  }
+}
+
+</script>
+</head>	
+<body onload="loads();refreshs();" onresize="resizes();">
+<table width="100%" border=0 cellpadding=0 cellspacing=0 vAlign="top">
+ <tr>
+   <td>
+	 <table width="100%" border=1 cellpadding=0 cellspacing=0 vAlign="top">
+	  <script language="javascript">
+	    document.write('<tr>');
+		
+		ch=6;
+		rw=3;
+		rh=2; 
+        tmps=0;
+		pid=4;
+		
+		for (var j = 1; j <= ch; j++) 
+		{
+		  document.write('<td vAlign="top"><table border="0"><tr><td>&nbsp;&nbsp;');
+		  document.write('<span id="'+dida[j-1]+'" style="color:white;"></span><br />');
+		  document.write('<img id="'+imga[j-1]+'" border="0" style="-webkit-user-select: none;margin: auto;">');
+		  document.write('</td></tr></table></td>');
+		  
+		  if(j==3)
+		  {
+		    document.write('</tr><tr>');
+		  }		  
+		}
+		document.write('</tr>');
+	  </script>
+	</table>
+	</td>
+  </tr>
+</table>
+</body>
+</html>

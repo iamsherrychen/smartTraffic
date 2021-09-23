@@ -1,0 +1,302 @@
+body {
+    display: block;
+    margin: 0px;
+}
+
+#time_left {
+    position: fixed;
+    bottom: 0;
+    color: rgb(0,0,0,0.3);
+    left: 10px;
+}
+
+.featherlight:last-of-type {
+    background: rgba(0,0,0,.65);
+}
+.featherlight .featherlight-close-icon {
+	/* position: centering vertical and horizontal */
+	position: fixed;
+	z-index: 9999;
+	top: 209px;
+    right: 606px;
+
+	line-height: 32px;
+    width: 32px;
+
+	/* styling */
+	cursor: pointer;
+	text-align: center;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    font-weight: bolder;
+    background: #A2E2E2;
+	color: #FFF;
+	border: none;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.featherlight .featherlight-content {
+    padding: 0;
+    border-bottom: 0;
+    background: none;
+}
+
+@keyframes red_blink {
+    from {
+        background-color: #FB563D;
+    }
+    50% {
+        background-color: rgb(247, 165, 152);
+    }
+    to {
+        background-color: #FB563D;
+    }
+}
+
+@keyframes green_blink {
+    from {
+        background-color: #5BD99A;
+    }
+    50% {
+        background-color: rgb(155, 214, 185);
+    }
+    to {
+        background-color: #5BD99A;
+    }
+}
+.headerLeft{
+	width:100%;
+	height:60px;
+    background: #4FB3B54D 0% 0% no-repeat padding-box;
+    display: flex;
+    align-items: center;
+}
+.tab {
+	display: inline-block;
+	padding: 0.6em 1em;
+	color: white;
+	position: absolute;
+	left:33%;
+	width:33%;
+	text-align:center;
+	height:43px;
+    font-family: Microsoft JhengHei;
+    font-size:20px;
+    font-weight: bold;
+	flex-direction: row-reverse;    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tab::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: -1;
+	background: #4FB3B5;
+	transform: perspective(.5em) rotateX(-2deg);
+}
+#setup_control_strategy{
+    display: inline;
+    right: 10px;
+    position: absolute;
+    display: inline;
+}
+.compass{
+    top: 84px;
+    right: 32px;
+    position: fixed;
+    z-index: 99;
+}
+#intersection_select {
+    width: 593px;
+    height: 60px;
+    position: relative;
+    top: 0px;
+    text-align: center;
+    text-align-last: center;
+    background: #4FB3B5;
+    opacity: 1;
+    color: white;
+    font-size: 20px;
+    font-family: 微軟正黑體;
+    font-weight: bold;
+    border-width: 0px;
+    outline: none;
+}
+
+#intersection_select option {
+    background: #ffffff;
+    color: #000000;
+    font-family: 微軟正黑體;
+    text-align-last: center;
+    left: 33%;
+    position: relative;
+    font-weight: bold;
+}
+.back_link {
+    font-family: Microsoft JhengHei;
+    font-weight: bold;
+    font-size: 23px;
+    position: absolute;
+    left: 15px;
+}
+
+.back_link a {
+    text-decoration: none;
+    color: #000;
+}
+
+.back_link span {
+    position: relative;
+    top: -7px;
+    left: -8px;
+}
+.left_side_popup {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 9999;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  background: rgba(0, 0, 0, .65);
+  display: none;
+}
+
+.left_side_popup .side_content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: white;
+  width: 0;
+  height: 968px;
+}
+
+/* index.html & travel_time.html  */
+.table {
+  position: fixed;
+  bottom: 48px;
+  padding: 10px;
+  height: 198px;
+  background: url(/img/box_black_number.png);
+  color: white;
+  background-repeat: no-repeat;
+  background-position-x: center;
+  z-index: 99;
+  width: 725px;
+  left: 561px;
+}
+
+.average_speed_road_direction_forward {
+  font-size: 18px;
+  color: #ADADAD;
+  font-family: 微軟正黑體;
+  position: absolute;
+  display: inline;
+  top: 57px;
+  left: 73px;
+}
+
+.average_speed_road_direction_reverse {
+  font-size: 18px;
+  color: #ADADAD;
+  font-family: 微軟正黑體;
+  position: absolute;
+  display: inline;
+  top: 57px;
+  left: 228px;
+}
+
+.average_speed_east {
+  font-size: 40px;
+  color: white;
+  /* font-family: Roboto; */
+  position: absolute;
+  display: inline;
+  top: 85px;
+  left: 59px;
+  text-align: right;
+}
+
+.travel_time_road_direction_forward {
+  font-size: 18px;
+  color: #ADADAD;
+  font-family: 微軟正黑體;
+  position: absolute;
+  display: inline;
+  top: 57px;
+  left: 423px;
+}
+
+.travel_time_road_direction_reverse {
+  font-size: 18px;
+  color: #ADADAD;
+  font-family: 微軟正黑體;
+  position: absolute;
+  display: inline;
+  top: 57px;
+  left: 566px;
+}
+
+.average_speed_west {
+  font-size: 40px;
+  color: white;
+  /* font-family: Roboto; */
+  position: absolute;
+  display: inline;
+  top: 85px;
+  left: 211px;
+}
+
+.travel_time_east {
+  font-size: 40px;
+  color: white;
+  /* font-family: Roboto; */
+  position: absolute;
+  display: inline;
+  top: 85px;
+  left: 409px;
+  text-align: right;
+}
+
+.travel_time_west {
+  font-size: 40px;
+  color: white;
+  /* font-family: Roboto; */
+  position: absolute;
+  display: inline;
+  top: 85px;
+  left: 553px;
+  text-align: right;
+}
+
+.update_time_speed_state {
+  font-size: 14px;
+  color: white;
+  /* font-family: Roboto; */
+  position: absolute;
+  display: inline;
+  top: 149px;
+  left: 480px;
+  text-align: right;
+  opacity: 0.8;
+}
+
+/* header */
+.select_project_style {
+  background-color: transparent;
+  color:#707070;
+  font-size: 20px;
+  border: none;
+  cursor: pointer;
+  right: 280px; 
+  position: absolute;
+}

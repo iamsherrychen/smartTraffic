@@ -1,0 +1,637 @@
+{
+	"info": {
+		"_postman_id": "2a0f2bb0-1df8-4573-bfc2-8943cca53d83",
+		"name": "smart_traffic_restful_api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "history",
+			"item": [
+				{
+					"name": "接收各時間各路口的流量趨勢統計數據(歷史)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "64b18d07-8014-4eb0-a251-5f7909ec4179",
+								"exec": [
+									"function GetDateStr(AddDayCount) {",
+									"    var dd = new Date();",
+									"    dd.setDate(dd.getDate()+AddDayCount);//获取AddDayCount天后的日期",
+									"    var y = dd.getFullYear();",
+									"    var m = dd.getMonth()+1;//获取当前月份的日期",
+									"    var d = dd.getDate();",
+									"    return y+\"-\"+m+\"-\"+d;",
+									"}",
+									"",
+									"var yesterday = new Date(GetDateStr(-1)).format(\"yyyy-MM-dd\");",
+									"",
+									"pm.environment.set(\"query_date\", yesterday);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/history/time_statistic/?date={{query_date}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"history",
+								"time_statistic",
+								""
+							],
+							"query": [
+								{
+									"key": "date",
+									"value": "{{query_date}}",
+									"description": "(Required) 欲查詢的日期"
+								}
+							]
+						},
+						"description": "For 流量趨勢圖(歷史), 查詢條件以日為單位"
+					},
+					"response": [
+						{
+							"name": "Successful operation.",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/history/time_statistic/?date=<string>",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"history",
+										"time_statistic",
+										""
+									],
+									"query": [
+										{
+											"key": "date",
+											"value": "<string>"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"success\": \"<boolean>\",\n \"timestamp\": \"<dateTime>\",\n \"data\": [\n  {\n   \"time_point\": \"<dateTime>\",\n   \"speed\": \"<integer>\",\n   \"statistic_data\": [\n    {\n     \"intersection_id\": \"<string>\",\n     \"intersection_name\": \"<string>\",\n     \"pcu\": \"<integer>\"\n    },\n    {\n     \"intersection_id\": \"<string>\",\n     \"intersection_name\": \"<string>\",\n     \"pcu\": \"<integer>\"\n    }\n   ]\n  },\n  {\n   \"time_point\": \"<dateTime>\",\n   \"speed\": \"<integer>\",\n   \"statistic_data\": [\n    {\n     \"intersection_id\": \"<string>\",\n     \"intersection_name\": \"<string>\",\n     \"pcu\": \"<integer>\"\n    },\n    {\n     \"intersection_id\": \"<string>\",\n     \"intersection_name\": \"<string>\",\n     \"pcu\": \"<integer>\"\n    }\n   ]\n  }\n ]\n}"
+						}
+					]
+				},
+				{
+					"name": "取得原始的log檔案",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "f26afcb8-6465-4b52-bee5-5043fba3feb8",
+								"exec": [
+									"function GetDateStr(AddDayCount) {",
+									"    var dd = new Date();",
+									"    dd.setDate(dd.getDate()+AddDayCount);//获取AddDayCount天后的日期",
+									"    var y = dd.getFullYear();",
+									"    var m = dd.getMonth()+1;//获取当前月份的日期",
+									"    var d = dd.getDate();",
+									"    return y+\"-\"+m+\"-\"+d;",
+									"}",
+									"",
+									"var yesterday = new Date(GetDateStr(-1)).format(\"yyyy-MM-dd\");",
+									"",
+									"pm.environment.set(\"query_date\", yesterday);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/history/download/?date={{query_date}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"history",
+								"download",
+								""
+							],
+							"query": [
+								{
+									"key": "date",
+									"value": "{{query_date}}",
+									"description": "(Required) 欲查詢的日期"
+								}
+							]
+						},
+						"description": "檔案及查詢條件皆以日為單位"
+					},
+					"response": [
+						{
+							"name": "Successful operation.",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/history/download/?date=<string>",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"history",
+										"download",
+										""
+									],
+									"query": [
+										{
+											"key": "date",
+											"value": "<string>"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"success\": \"<boolean>\"\n}"
+						}
+					]
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "df783647-5ca8-4da7-8afd-6f89c678859b",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "9043d459-2d24-4ee5-9742-e6a2e3bc0530",
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"Status 200\"] = responseCode.code === 200;"
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "intersections",
+			"item": [
+				{
+					"name": "{id}",
+					"item": [
+						{
+							"name": "查詢特定路口的明細",
+							"request": {
+								"auth": {
+									"type": "basic"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/intersections/:id/",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"intersections",
+										":id",
+										""
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "{{intersection_id}}",
+											"type": "string",
+											"description": "(Required) 路口ID"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Successful operation.",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/intersections/:id/",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"intersections",
+												":id",
+												""
+											],
+											"variable": [
+												{
+													"key": "id"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"success\": \"<boolean>\",\n \"timestamp\": \"<dateTime>\",\n \"data\": {\n  \"id\": \"<string>\",\n  \"name\": \"<string>\",\n  \"sub_phase_total\": \"<integer>\",\n  \"type_for_light_chart\": \"<string>\",\n  \"type_for_traffic_flow\": \"<string>\",\n  \"center_longitude\": \"<number>\",\n  \"center_latitude\": \"<number>\"\n }\n}"
+								}
+							]
+						},
+						{
+							"name": "查詢特定路口的設備明細",
+							"request": {
+								"auth": {
+									"type": "basic"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/intersections/:id/devices/",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"intersections",
+										":id",
+										"devices",
+										""
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "{{intersection_id}}",
+											"type": "string",
+											"description": "(Required) 路口ID"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Successful operation.",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/intersections/:id/devices/",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"intersections",
+												":id",
+												"devices",
+												""
+											],
+											"variable": [
+												{
+													"key": "id"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n \"success\": \"<boolean>\",\n \"timestamp\": \"<dateTime>\",\n \"data\": [\n  {\n   \"device_id\": \"<string>\",\n   \"category\": \"<string>\",\n   \"x_position\": \"<integer>\",\n   \"y_position\": \"<integer>\",\n   \"longitude\": \"<number>\",\n   \"latitude\": \"<number>\",\n   \"direction\": \"<string>\",\n   \"rtsp_url\": \"<string>\",\n   \"description\": \"<string>\"\n  },\n  {\n   \"device_id\": \"<string>\",\n   \"category\": \"<string>\",\n   \"x_position\": \"<integer>\",\n   \"y_position\": \"<integer>\",\n   \"longitude\": \"<number>\",\n   \"latitude\": \"<number>\",\n   \"direction\": \"<string>\",\n   \"rtsp_url\": \"<string>\",\n   \"description\": \"<string>\"\n  }\n ]\n}"
+								}
+							]
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "查詢所有的路口的明細",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "35f51311-44d7-4534-9391-ebf8ff377cb1",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/intersections/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"intersections",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Successful operation.",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/intersections/",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"intersections",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"success\": \"<boolean>\",\n \"timestamp\": \"<dateTime>\",\n \"data\": [\n  {\n   \"id\": \"<string>\",\n   \"name\": \"<string>\",\n   \"sub_phase_total\": \"<integer>\",\n   \"type_for_light_chart\": \"<string>\",\n   \"type_for_traffic_flow\": \"<string>\",\n   \"center_longitude\": \"<number>\",\n   \"center_latitude\": \"<number>\"\n  },\n  {\n   \"id\": \"<string>\",\n   \"name\": \"<string>\",\n   \"sub_phase_total\": \"<integer>\",\n   \"type_for_light_chart\": \"<string>\",\n   \"type_for_traffic_flow\": \"<string>\",\n   \"center_longitude\": \"<number>\",\n   \"center_latitude\": \"<number>\"\n  }\n ]\n}"
+						}
+					]
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "4c411274-47b6-49df-8ebf-6e56e52f32fa",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "f827b35f-b85a-4baf-af10-5ff0fff93ec1",
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"Status 200\"] = responseCode.code === 200;"
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "POST",
+			"item": [
+				{
+					"name": "設定區域中所有路口的時序狀態(一次設定全部路口時序)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "df37b650-ced3-4c64-9b38-25ec0a01f98d",
+								"exec": [
+									"pm.test(\"Successful POST request\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([201,202]);",
+									"});",
+									"pm.test(\"Content-Type is present\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"control_strategy\": \"0x05\"\n}",
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/intersections/control_strategy/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"intersections",
+								"control_strategy",
+								""
+							]
+						},
+						"description": "Control Strategy: 0-定時 1-動態. 呼叫此API時header必須帶帳號密碼，其中密碼須經sha256加密過."
+					},
+					"response": [
+						{
+							"name": "Successful operation.",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"control_strategy\": \"<integer>\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/intersections/control_strategy/",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"intersections",
+										"control_strategy",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"success\": \"<boolean>\",\n \"timestamp\": \"<dateTime>\",\n \"data\": \"<string>\"\n}"
+						},
+						{
+							"name": "Forbidden, 帳戶驗證失敗.",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"control_strategy\": \"<integer>\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/intersections/control_strategy/",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"intersections",
+										"control_strategy",
+										""
+									]
+								}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "text",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "text/plain"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "admin",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "054eb1ab-c86c-41b9-8173-4cbbab376b70",
+				"type": "text/javascript",
+				"exec": [
+					"Date.prototype.format = function(fmt) { ",
+					"     var o = { ",
+					"        \"M+\" : this.getMonth()+1,                 //月份 ",
+					"        \"d+\" : this.getDate(),                    //日 ",
+					"        \"h+\" : this.getHours(),                   //小时 ",
+					"        \"m+\" : this.getMinutes(),                 //分 ",
+					"        \"s+\" : this.getSeconds(),                 //秒 ",
+					"        \"q+\" : Math.floor((this.getMonth()+3)/3), //季度 ",
+					"        \"S\"  : this.getMilliseconds()             //毫秒 ",
+					"    }; ",
+					"    if(/(y+)/.test(fmt)) {",
+					"            fmt=fmt.replace(RegExp.$1, (this.getFullYear()+\"\").substr(4 - RegExp.$1.length)); ",
+					"    }",
+					"     for(var k in o) {",
+					"        if(new RegExp(\"(\"+ k +\")\").test(fmt)){",
+					"             fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : ((\"00\"+ o[k]).substr((\"\"+ o[k]).length)));",
+					"         }",
+					"     }",
+					"    return fmt;",
+					"}",
+					"",
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "143822cc-45ea-4dca-bd5a-b772eafbe455",
+				"type": "text/javascript",
+				"exec": [
+					"tests[\"Response time < 1000ms\"] = responseTime < 3000;"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "bbdb1795-e2a2-43fd-a6bd-cfc9727100fb",
+			"key": "baseUrl",
+			"value": "http://localhost/api",
+			"type": "string",
+			"disabled": true
+		}
+	],
+	"protocolProfileBehavior": {}
+}

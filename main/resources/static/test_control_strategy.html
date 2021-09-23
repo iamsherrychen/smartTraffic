@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="Content-Type"  X-Content-Type-Options="nosniff" content="text/html; charset=utf-8">
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <script src="js/jquery-3.6.0.min.js"></script>
+    <script src="js/sha256.min.js"></script>
+</head>
+<body>
+    <label for="user_id">ID:</label>
+    <input type="text" id="user_id" name="user_id" value="admin"><br><br>
+    <label for="user_pw">Password:</label>
+    <input type="text" id="user_pw" name="user_pw" value="admin"><br><br>
+    <label for="control_strategy">Control Strategy:</label>
+    <input type="text" id="control_strategy" name="control_strategy" value="1"><br><br>
+    <button id="setup_control_strategy">Setup Control Strategy</button> 
+</body>
+<script>
+$(function () {
+    $("#setup_control_strategy").click(function() {
+        var request_body = {};
+        request_body["control_strategy"] = $("#control_strategy").val();
+        var user_id = $("#user_id").val();
+        console.log("user_id="+user_id);
+        var user_pw = $("#user_pw").val();
+        console.log("user_pw="+user_pw);
+
+        $.ajax({
+            url: '/api/intersections/control_strategy/',
+            type: 'post',
+            async: true,
+            cache: false,
+            data: JSON.stringify(request_body),
+            contentType: "application/json; charset=utf-8", // 呼叫請求的資料格式
+            dataType: "json", // Default "accept" header, 預期回傳的資料格式
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("Authorization", "Basic " + btoa(user_id+ ":" +sha256(user_pw)));
+            },
+            success: function (response) {
+                var message = response.data;			
+                console.log(JSON.stringify(message));
+            },
+            error: function (response) {
+                var message = response.responseJSON.data;                
+                console.log(message);
+                if (response.status==403) {
+                    alert("帳號驗證失敗");
+                }
+            }
+        });
+    });
+});
+</script>
+</html>

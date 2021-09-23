@@ -1,0 +1,539 @@
+swagger: '2.0'
+info:
+  title: SmartTraffic Data Format for Websocket
+  description: "Data format for SmartTraffic project<br>使用Swagger來描述websocket傳輸的資料格式<br>POST=sent<br>GET=subscribe"
+  version: v1
+host: pixord.wiadvancelabs.com
+basePath: /traffic
+schemes:
+  - wss
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  Basic:
+    type: basic
+security:
+  - Basic: []
+paths:
+  /area_statistic/:
+    get:
+      operationId: "getAreaStatistic"
+      summary: "接收目前區域的統計數據，例如：平均車輛、平均車速、旅行時間等(區域交通狀態圖)"
+      parameters: []
+      responses:
+        '200':
+          description: "Successful operation."
+          schema:
+            $ref: '#/definitions/AreaStatistic'
+      tags:
+        - area
+  
+  /time_statistic/:
+    get:
+      summary: "接收各時間各路口的流量趨勢統計數據(今日)(流量趨勢圖)"
+      responses:
+        '200':
+          description: "Successful operation."
+          schema:
+            $ref: '#/definitions/TimeStatistic'
+      tags:
+        - area
+        
+  /intersection/{id}/time_statistic/:
+    get:
+      summary: "接收特定路口各時間的統計數據(暫時沒用到)"
+      parameters: 
+        - name: id
+          in: path
+          description: "ID of intersection."
+          required: true
+          type: 'string'
+      responses:
+        '200':
+          description: "Successful operation."
+          schema:
+            $ref: '#/definitions/IntersectionTimeStatistic'
+      tags:
+        - intersection
+      deprecated: true
+
+  /intersection/{id}/storage_space_speed/:
+    get:
+      summary: "特定路口的各子路口的儲車空間及速度(現場燈態圖)"
+      description: "路的的control strategy無法併進來是因為後端從IPC拿到的資料為不同來源訊息"
+      parameters: 
+      - name: id
+        in: path
+        description: "ID of intersection."
+        required: true
+        type: 'string'
+      responses:
+        '200':
+          description: ''
+          schema:
+           $ref: '#/definitions/IntersectionStorageSpaceSpeed'
+      tags:
+        - intersection
+        
+  /storage_space_speed/:
+    get:
+      summary: "接收各路口中各子路口的儲車空間及速度(區域交通狀態圖)"
+      description: "註：路口的control strategy無法併進來是因為後端從IPC拿到的資料為不同來源訊息"
+      responses:
+        '200':
+          description: ''
+          schema:
+           $ref: '#/definitions/StorageSpaceSpeed'
+      tags:
+        - area
+
+  /speed_from_opendata/:
+    get:
+      summary: "從公開API旅行時間計算車速與路線圖"
+      description: "目前固定路口、路線"
+      responses:
+        '200':
+          description: ''
+          schema:
+           $ref: '#/definitions/SpeedFromOpenData'
+      tags:
+        - area
+  
+  /intersection/{id}/sub_phases/:
+    get:
+      summary: "查詢特定路口的時相，包含全部時相、現在時相(現場燈態圖)"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "路口的ID"
+        required: true
+        type: "string"
+      responses:
+        '200':
+          description: ""
+          schema:
+            $ref: '#/definitions/Intersection'
+      tags:
+      - intersection
+  
+  /intersection/{id}/traffic_flow/duration/{minutes}:
+    get:
+      summary: "特定路口的車流量(轉向交通量圖、分時流量圖)"
+      description: "本API接收的值全為PCU"
+      parameters: 
+      - name: "id"
+        in: path
+        description: "ID of intersection."
+        required: true
+        type: 'string'
+      - name: "minutes"
+        in: path
+        description: "以多少分鐘為一個單位做統計"
+        required: true
+        type: 'integer'
+        enum:
+          - 1
+          - 5
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/TrafficFlow'
+      tags:
+        - intersection
+
+  /control_strategy/:
+    get:
+      summary: "接收各路口的時序狀態 (區域交通狀態圖)"
+      description: "Control Strategy: 0x10- 定時，0x05- 動態 ，0x04- 路口手動"
+      responses:
+        '200':
+          description: "Successful operation."
+          schema:
+            $ref: '#/definitions/ControlStrategy'
+      tags:
+        - area
+      deprecated: true
+        
+definitions:
+  Intersection:
+    type: "object"
+    properties:
+      success:
+        title: "true - 数据获取成功， false - 数据获取失败"
+        type: boolean
+      timestamp:
+        type: "string"
+        format: "date-time"
+      intersection_id:
+        type: "string"
+      control_strategy:
+            title: "時序狀態"
+            type: string
+            enum:
+              - "0x10"
+              - "0x05"
+              - "0x04"
+      control_strategy_from_center:
+            title: "中心狀態"
+            type: string
+            enum:
+              - "0x10"
+              - "0x05"
+      data:
+        type: object
+        properties: 
+          sub_phases:
+            type: array
+            items:
+              $ref: '#/definitions/SubPhase'
+          current_sub_phase_id:
+            type: string
+          
+
+  StorageSpaceSpeed:
+    type: "object"
+    properties:
+      success:
+        title: "true - 数据获取成功， false - 数据获取失败"
+        type: boolean
+      timestamp:
+        type: "string"
+        format: "date-time"
+      data:
+        type: object
+        properties:
+          intersection_id:
+            type: string
+          sub_intersections:
+            type: array
+            items:
+              $ref: '#/definitions/SubIntersection'
+              
+  IntersectionStorageSpaceSpeed:
+    type: "object"
+    properties:
+      success:
+        title: "true - 数据获取成功， false - 数据获取失败"
+        type: boolean
+      timestamp:
+        type: "string"
+        format: "date-time"
+      data:
+        type: object
+        properties:
+          sub_intersections:
+            type: array
+            items:
+              $ref: '#/definitions/SubIntersection'
+              
+  SubIntersection:
+    required:
+      - sub_intersection_id
+    type: object
+    properties:
+      sub_intersection_id: 
+        title: "路口各面相(Sub intersection)編號"
+        type: integer
+      name:
+        title: "sub intersection所在的路名, 例如:中正東路"
+        type: string
+      sub_intersection_direction:
+        title: "由使用者自行定義, 例如:路口東側"
+        type: string
+      flow_in_storage_space:
+        title: "流入此sub intersection的儲車空間狀態"
+        type: string
+        enum:
+        - "green"
+      flow_out_storage_space:
+        title: "流出此sub intersection的儲車空間狀態"
+        type: string
+        enum:
+        - "red"
+        - "green"
+      flow_in_speed:
+        title: "流入此sub intersection的速度狀態"
+        type: string
+        enum:
+        - "green"
+      flow_out_speed:
+        title: "流出此sub intersection的速度狀態"
+        type: string
+        enum:
+        - "red"
+        - "green"
+      connect_to:
+        title: "連結到哪個路口(intersection ID)"
+        type: string
+      route_to_connected_to:
+        title: "本路口至連結的路口，路徑上所有的座標, 該偏移的點要先稨移好才傳回前端."
+        type: array
+        items:
+          type: object
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+
+  SpeedFromOpenData:
+    type: "object"
+    properties:
+      success:
+        title: "true - 数据获取成功， false - 数据获取失败"
+        type: boolean
+      timestamp:
+        type: "string"
+        format: "date-time"
+      data:
+        type: object
+        properties:
+          intersection_id:
+            title: "起始路口."
+            type: string
+          connect_to:
+            title: "終點路口"
+            type: string
+          forward_speed_status:
+            title: "順向車速狀態(>= 30 綠色，不到30紅色)."
+            type: string
+            enum: 
+              - "green"
+              - "red"
+          reverse_speed_status:
+            title: "逆向車速狀態(>= 30 綠色，不到30紅色)."
+            type: string
+            enum: 
+              - "green"
+              - "red"
+          forward_route_to_connected:
+            title: "起始路口連結到終點路口，路徑上所有的座標, 該偏移的點要先稨移好才傳回前端."
+            type: array
+            items:
+              type: object
+              properties:
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+          reverse_route_to_connected:
+            title: "終點路口連結到起始路口，路徑上所有的座標, 該偏移的點要先稨移好才傳回前端."
+            type: array
+            items:
+              type: object
+              properties:
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+        
+  SubPhase:
+    type: object
+    properties:
+      sub_phase_id:
+        type: string
+      effect_time_total:
+        type: integer
+      effect_time_last:
+        type: integer
+      sub_intersection_1_light:
+        type: string
+      sub_intersection_2_light:
+        type: string
+      sub_intersection_3_light:
+        type: string
+      sub_intersection_4_light:
+        type: string
+      sub_intersection_5_light:
+        type: string
+      sub_intersection_6_light:
+        type: string
+      sub_intersection_7_light:
+        type: string
+      sub_intersection_8_light:
+        type: string
+
+  ControlStrategy:
+    required:
+      - control_strategy
+    type: object
+    properties:
+      success:
+        title: "true - 数据获取成功， false - 数据获取失败"
+        type: boolean
+      timestamp:
+        type: string
+        format: date-time
+      data:
+        type: object
+        properties:
+          intersection_id:
+            type: string
+          control_strategy:
+            title: "時序狀態"
+            type: string
+            enum:
+              - "0x10"
+              - "0x05"
+              - "0x04"
+              - "0xBF"
+          
+            
+  AreaStatistic:
+    required:
+      - average_car_speed_east
+      - average_car_speed_west
+      - average_car_count_east
+      - average_car_count_west
+      - travel_time_east
+      - travel_time_west
+    type: object
+    properties:
+      success:
+        title: "true - 数据获取成功， false - 数据获取失败"
+        type: boolean
+      timestamp:
+        type: string
+        format: date-time
+      data:
+        type: object
+        properties:
+          average_car_speed_east:
+            title: "平均車速-東向"
+            type: integer
+          average_car_speed_west:
+            title: "平均車速-西向"
+            type: integer
+          travel_time_east:
+            title: "旅行時間-東向"
+            type: integer
+          travel_time_west:
+            title: "旅行時間-西向"
+            type: integer
+    
+  IntersectionTimeStatistic:
+    type: object
+    properties:
+      success:
+        title: "true - 数据获取成功， false - 数据获取失败"
+        type: boolean
+      timestamp:
+        type: string
+        format: date-time
+      data:
+        type: array
+        items:
+          type: object
+          properties:
+            time_point:
+              type: string
+              format: date-time
+            speed:
+              type: integer      
+            statistic_data:
+              $ref: '#/definitions/IntersectionStatistic'
+                
+  TimeStatistic:
+    type: object
+    properties:
+      success:
+        title: "true - 数据获取成功， false - 数据获取失败"
+        type: boolean
+      timestamp:
+        type: string
+        format: date-time
+      data:
+        type: array
+        items:
+          type: object
+          properties:
+            time_point:
+              type: string
+              format: date-time
+            speed_east:
+              type: integer
+            speed_west:
+              type: integer
+            statistic_data:
+              type: array
+              items:
+                $ref: '#/definitions/IntersectionStatistic'
+  
+  IntersectionStatistic:
+    type: object
+    properties:
+      intersection_id: 
+        type: string
+      intersection_name: 
+        type: string    
+      pcu:
+        type: integer
+
+  TrafficFlow:
+    type: object
+    properties:
+      success:
+        title: "true - 数据获取成功， false - 数据获取失败"
+        type: boolean
+      timestamp:
+        type: string
+        format: date-time
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/SubIntersectionTrafficFlow'
+      
+  SubIntersectionTrafficFlow:
+    required:
+      - sub_intersection_id
+    type: object
+    properties:
+      sub_intersection_name:
+        title: "路口方向名稱"
+        type: string
+      sub_intersection_id: 
+        title: "路口各面相(Sub intersection)編號"
+        type: integer
+      flow_out_total:
+        title: "流出此sub intersection的總PCU"
+        type: integer
+      flow_in_total:
+        title: "流入此sub intersection的總PCU"
+        type: integer
+      has_vehicle_detector:
+        type: boolean
+      sub_data:
+        type: array
+        items:
+          $ref: '#/definitions/SubIntersectionTrafficFlowDetail'
+          
+  SubIntersectionTrafficFlowDetail:
+    type: object
+    properties:
+      connected_sub_intersection_id:
+        title: "轉出或轉入到哪個路口的ID"
+        type: "integer"
+      connected_sub_intersection_name:
+        title: "轉出或轉入到哪個路口的名稱"
+        type: "string"
+      connected_sub_intersection_direction:
+        type: string
+        title: "轉出或轉入到哪個路口的名稱"
+      flow_out_bigcar:
+        title: "流出此sub intersection的大車的總PCU"
+        type: integer
+      flow_out_car:
+        title: "流出此sub intersection的客車的總PCU"
+        type: integer
+      flow_out_motcar:
+        title: "流出此sub intersection的機車的總PCU"
+        type: integer
+      flow_out_average_op:
+        title: "流出此sub intersection的轉向率"
+        type: integer
+      flow_in_count:
+        title: "由別的路口轉進來此sub intersection的總PCU"
+        type: integer

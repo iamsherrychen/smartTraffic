@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type"  X-Content-Type-Options="nosniff" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width">
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>現場燈態圖</title>
+	<link href="css/slider-pro.min.css" rel="stylesheet" type="text/css" media="screen">
+	<link href="css/featherlight.min.css" type="text/css" rel="stylesheet">
+	<link href="css/common.css" type="text/css" rel="stylesheet">
+	<link href="css/slider-canvas.css" rel="stylesheet" type="text/css" media="screen">
+	<link href="css/fonts.css" rel="stylesheet">
+<style>
+body {
+    margin: 0px;
+}
+
+.subintersection_num {
+    background-color: #ffffff;
+    color: #318386;
+    font-size: 19px;
+    font-family: 微軟正黑體;
+    text-align: center;
+    width: 213px;
+    height: 50px;
+    line-height: 40px;
+}
+
+.subintersection_name {
+    font-family: 微軟正黑體;
+    color: #363636;
+    font-weight: bold;
+    background-color: #ffffff;
+    border-radius: 24px;
+}
+
+.arrows_270 {
+    transform: rotate(270deg) !important;
+}
+
+.arrows_90 {
+    transform: rotate(90deg) !important;
+}
+
+.arrows_180 {
+    transform: rotate(180deg) !important;
+}
+
+.arrows_0 {
+    transform: rotate(0deg) !important;
+}
+
+.sp-selected-thumbnail {
+    border: 5px solid #FFEB5A !important;
+}
+
+.right_side_popup {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 9999;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    background: rgba(0, 0, 0, .65);
+    display: none;
+}
+
+.right_side_popup .side_content {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: white;
+    width: 0;
+    height: 968px;
+}
+.sp-bottom-thumbnails.sp-has-pointer .sp-selected-thumbnail:before{
+	display: none;
+}
+.sp-bottom-thumbnails.sp-has-pointer .sp-selected-thumbnail:after{
+	display: none;
+}
+.sp-bottom-thumbnails.sp-has-pointer{margin-top:0px;background:#318386}
+.sp-bottom-thumbnails.sp-has-pointer .sp-thumbnail{top:2px;}
+.slider-pro p.sp-layer{font-size:22px;}
+
+</style>
+<script src="js/env.js"></script>
+<script src="js/common.js"></script>
+<script src="js/jquery-3.4.1.min.js"></script>
+<script src="js/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/jquery-1.11.0.min.js" type="text/javascript"></script>
+<script src="js/jquery.sliderPro.min.js" type="text/javascript"></script>
+<script src="js/stomp.min.js"></script>
+<script type="text/javascript">
+	var current_intersection_id;
+	var current_sub_phase_id=0;
+	var intersection_type;
+	var picture;
+	var append="";
+	var rotate = 0;
+
+	$(function () {
+		getCurrentIntersectionId().then(function (data) {
+			return makeIntersectionSelectBox();
+		}).then(function (data) {
+			return getDeviceInfo();
+		}).then(function (data) {
+			return appendAllPic();
+		}).then(function (data) {
+			return connect();
+		}).catch(function (err) {
+			console.error(err);
+		});
+
+		bindClickEvent();
+	});
+
+	// Step 1. Get current intersection ID from cookie.
+	function getCurrentIntersectionId() {
+		var p = new Promise(function (resolve, reject) {
+			try {
+				current_intersection_id= getCookie("intersection");
+				resolve("Success in getCurrentIntersectionId().");
+			} catch (e) {
+				reject("Fail in getCurrentIntersectionId().");
+			}
+		});
+		return p;
+    }
+	
+	// Step 2. Get all intersectioins' info to make the dropdown box.
+	function makeIntersectionSelectBox() {
+		var p = new Promise(function (resolve, reject) {
+			try {
+				var aj = $.ajax({
+					url: '../api/intersections', // 跳轉到 action 
+					type: 'get',
+					async: false,
+					cache: false,
+					dataType: 'json',
+					success: function(data) {
+						// console.log(data);
+						var content_html = "";
+						for (var ii in data.data) {
+							// if((data.data[ii].description !== "Virtual_coordinates")){
+
+							if((data.data[ii].id !== "H33700303") && (data.data[ii].id !== "H33700304")){
+								content_html += '<option value="' + data.data[ii].id + '">' + data.data[ii].name + '</option>'
+								if (current_intersection_id == data.data[ii].id) {
+									intersection_type = data.data[ii].type_for_light_chart;
+									//東匝路口在現場登態圖不算十字路口，但是在車流量圖是算十字路口
+									document.cookie = "intersection_type=" + data.data[ii].type_for_traffic_flow;
+									document.cookie = "intersection_name=" + data.data[ii].name;
+									addCSS(data.data[ii].type_for_light_chart);
+									picture = '<img class="sp-image" src="../../img/blank.gif" data-src="/img/D_bg_' + intersection_type + '.png"/>';
+									//組所有圖片
+									//appendAllPic();
+									rotate = data.data[ii].rotate; //指北針逆時針轉90度
+								}
+							}
+						}
+						$("#intersection_select").html(content_html);
+						$('#intersection_select option[value=' + current_intersection_id+ ']').attr('selected', 'selected');
+					},
+					error: function(response) {
+						var message = response.responseJSON.data;
+            			alert(message);
+					},
+					complete: function() {}
+				});
+				resolve("Success in makeIntersectionSelectBox().");
+			} catch (e) {
+				reject("Fail in makeIntersectionSelectBox().");
+			}
+		});	
+		return p;	
+	}
+
+	// Step 3. Get intersection's device information from RESTful API.
+	function getDeviceInfo() {
+		var p = new Promise(function (resolve, reject) {
+			try {
+				var aj = $.ajax({
+					url: '/api/intersections/' + current_intersection_id + '/devices/', // 跳轉到 action 
+					type: 'get',
+					async: false,
+					cache: false,
+					dataType: 'json',
+					success: function(data) {
+						msg = data.data;
+						for (var k = 0; k < msg.length; k++) {
+							if (msg[k].category == "PC" || msg[k].category == "VD") {
+								continue;
+							}
+							var category;
+							if (msg[k].category == "SD" || msg[k].category == "BL") {
+								category = "SD";
+							} else
+								category = "FE";
+							// append+='<p  class="sp-layer sp-padding" data-show-delay="800" style="position:absolute;top:192px;left:527px;z-index: 3;"><img src="../../img/pic_FE.svg" /></p>';
+							append += '<p class="sp-layer sp-padding" data-horizontal="' + msg[k].x_position + '" data-vertical="' + msg[k].y_position + '" data-show-transition="left" data-hide-transition="up" data-show-delay="800" style="z-index: 3;">' +
+								'<a href="javascript:void(0)" onclick=videoUrl("' + (msg[k].rtsp_url).toString() + '") data-featherlight="#life_stream"><img src="../img/pic_' + category + '.svg"/></a>'
+								// +'<div style="display: none;">'
+								// + '<div id="life_stream">'
+								// + '<img src="http://1.34.180.120:8080/video3.mjpg" alt=""></div></div>'
+								+
+								'</p>';
+						}
+					},
+					error: function(response) {
+						var message = response.responseJSON.data;
+            			alert(message);
+					},
+					complete: function() {}
+				});	 
+				resolve("Success in getDeviceInfo().");
+			} catch (e) {
+				reject("Fail in getDeviceInfo().");
+			}
+		});
+		return p;
+	}
+
+	window.onload = function(){ 
+		document.querySelectorAll('.rotate').forEach(el => el.style.transform = 'rotate('+rotate+'deg)');
+	};
+
+	var pic="";
+	// Step 4. To assembly all of dynamic pictures
+	function appendAllPic(){
+		var p = new Promise(function (resolve, reject) {
+			try {
+				//大路口
+				for(var k=0;k<8;k++){
+					pic +='<div class="sp-slide">'
+						+ picture
+						// 左上角的時項/時間
+						+'<p class="sp-layer sp-padding" data-horizontal="0" data-vertical="0" data-show-transition="left" data-hide-transition="up" data-show-delay="800" style="z-index:2"><img src="../../img/pic_mark_time.png"/></p>'
+						// 右上角更新時間
+						+'<p class="sp-layer sp-padding update_time" style="font-size: 14px;font-family: 微軟正黑體;" data-horizontal="1675" data-vertical="10" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+						// 右上角指北針圖示
+
+						+'<p class="sp-layer sp-padding" data-horizontal="1780" data-vertical="45" data-show-transition="left" data-hide-transition="up" data-show-delay="800" style="z-index:2"><img src="../../img/compass.svg" /></p>'
+						// 現在的時項
+						+'<p class="sp-layer sp-padding current_sub_phase_id" style="font-size: 40px!important;font-weight: bold!important;color: #318386!important; z-index:2" data-horizontal="87" data-vertical="60" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+						// 現在的時項時間秒數
+						+'<p class="sp-layer sp-padding current_sub_phase_time" style="font-size: 40px!important;font-weight: bold;color: #318386;width:100px;text-align: right; z-index:2" data-horizontal="217" data-vertical="60" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+						// 標示說明圖
+						+'<p class="sp-layer sp-padding" data-horizontal="5" data-vertical="695" data-show-transition="left" data-hide-transition="up" data-show-delay="800" style="z-index: 2;"><img src="../img/pic_mark_five.png" /></p>'
+
+						/* 子路口1 */ 
+						// 箭頭
+						+'<p class="sp-layer arrows_270 sub_intersection_arrows_1" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+						// 儲車狀態 flow-out
+						+'<p class="sp-layer sp-padding subintersection_ew subintersection_flowout_1" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+						// 儲車狀態 flow-in
+						+'<p class="sp-layer sp-padding subintersection_ew subintersection_flowin_1" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'	
+						// 路口名稱
+						+'<p class="sp-layer sp-padding subintersection_name sub_intersection_name_1" data-horizontal="1680" data-vertical="384" data-show-delay="800"></p>'
+
+						/* 子路口2 */ 
+						// 箭頭
+						+'<p class="sp-layer arrows_0 sub_intersection_arrows_2" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+						// 儲車狀態 flow-out
+						+'<p class="sp-layer sp-padding  subintersection_sn subintersection_flowout_2" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+						// 儲車狀態 flow-in
+						+'<p class="sp-layer sp-padding  subintersection_sn subintersection_flowin_2" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+						// 路口名稱
+						+'<p class="sp-layer sp-padding subintersection_name sub_intersection_name_2" data-horizontal="860" data-vertical="756" data-show-delay="800"></p>'
+
+						/* 子路口3 */ 
+						// 箭頭
+						+'<p class="sp-layer arrows_90 sub_intersection_arrows_3" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+						// 儲車狀態 flow-out
+						+'<p class="sp-layer sp-padding  subintersection_ew subintersection_flowout_3" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+						// 儲車狀態 flow-in
+						+'<p class="sp-layer sp-padding  subintersection_ew subintersection_flowin_3" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+						// 路口名稱
+						+'<p class="sp-layer sp-padding subintersection_name sub_intersection_name_3" data-horizontal="30" data-vertical="384" data-show-delay="800"></p>'
+
+						/* 子路口4 */ 
+						// 箭頭
+						+'<p class="sp-layer arrows_180 sub_intersection_arrows_4" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+						// 儲車狀態 flow-out
+						+'<p class="sp-layer sp-padding  subintersection_sn subintersection_flowout_4" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+						// 儲車狀態 flow-in
+						+'<p class="sp-layer sp-padding  subintersection_sn subintersection_flowin_4" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+						// 路口名稱
+						+'<p class="sp-layer sp-padding subintersection_name sub_intersection_name_4" data-horizontal="860" data-vertical="10" data-show-delay="800"></p>';
+
+						/* 子路口6 */ 
+						// 箭頭
+						pic+='<p class="sp-layer sub_intersection_arrows_6" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+							// 儲車狀態 flow-out
+							+'<p class="sp-layer sp-padding  subintersection_sn subintersection_flowout_6" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+							// 儲車狀態 flow-in
+							+'<p class="sp-layer sp-padding  subintersection_sn subintersection_flowin_6" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+							// 路口名稱
+							+'<p class="sp-layer sp-padding subintersection_name sub_intersection_name_6" data-horizontal="917" data-vertical="10" data-show-delay="800"></p>';
+						
+						/* 子路口8 */ 
+						// 箭頭
+						pic+='<p class="sp-layer sub_intersection_arrows_8" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+							// 儲車狀態 flow-out
+							+'<p class="sp-layer sp-padding  subintersection_sn subintersection_flowout_8" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+							// 儲車狀態 flow-in
+							+'<p class="sp-layer sp-padding  subintersection_sn subintersection_flowin_8" data-show-transition="left" data-hide-transition="up" data-show-delay="800"></p>'
+							// 路口名稱
+							+'<p class="sp-layer sp-padding subintersection_name sub_intersection_name_8" data-horizontal="917" data-vertical="10" data-show-delay="800"></p>';
+						// }
+						pic+=append;
+				}
+				$(".sp-slides").html(pic);
+				resolve("Success in appendAllPic().");
+			} catch (e) {
+				reject("Fail in appendAllPic().");
+			}
+		});
+		return p;
+	}
+
+	// Step 5. Connect to websocket
+	function connect() {
+		var p = new Promise(function (resolve, reject) {
+			try {
+				stompClient = Stomp.client(env.getWsUrl())
+				stompClient.connect({}, function(frame) {
+					// console.log('connected: ' + frame);
+
+					// 持續接儲車空間資料
+					stompClient.subscribe('/topic/intersection/'+current_intersection_id+'/storage_space_speed', function(resp) {
+						var msg=JSON.parse(resp.body);
+						//此畫面最新更新時間
+						$(".update_time").html("更新時間: "+new Date(msg.timestamp).Format('yyyy-MM-dd hh:mm:ss'))
+						//當前時相的各個路口的儲車狀態+路口名稱
+						var current_sub_intersection = msg.data.sub_intersections;
+						//組當前時相路口資訊
+						appendLayer(current_sub_intersection);
+					});
+
+					// 持續接收時項(sub_phase)資料
+					stompClient.subscribe('/topic/intersection/'+current_intersection_id+'/sub_phases', function(resp) {
+						var msg=JSON.parse(resp.body);
+						//因為slider從0開始計算所有收到的時相id要-1
+						current_sub_phase_id = parseInt(msg.data.current_sub_phase_id)-1;
+						$(".current_sub_phase_id").html(current_sub_phase_id+1);
+						
+						//各個時相的路口方向狀態+時相+時間
+						var current_sub_phase_detail= msg.data.sub_phases;
+						
+						// FIX-ME: Mock data
+						// var current_sub_phase_detail = JSON.parse('[{"sub_phase_id":"1","effect_time_total":100,"sub_intersection_1_light":"7","sub_intersection_3_light":"7","sub_intersection_2_light":"N","sub_intersection_4_light":"0","sub_intersection_5_light":"N","sub_intersection_6_light":"N","sub_intersection_7_light":"N","sub_intersection_8_light":"N"},{"sub_phase_id":"2","effect_time_total":50,"sub_intersection_1_light":"7","sub_intersection_3_light":"7","sub_intersection_2_light":"N","sub_intersection_4_light":"0","sub_intersection_5_light":"N","sub_intersection_6_light":"N","sub_intersection_7_light":"N","sub_intersection_8_light":"N"},{"sub_phase_id":"3","effect_time_total":42,"sub_intersection_1_light":"0","sub_intersection_3_light":"0","sub_intersection_2_light":"N","sub_intersection_4_light":"7","sub_intersection_5_light":"N","sub_intersection_6_light":"N","sub_intersection_7_light":"N","sub_intersection_8_light":"N"}]');
+
+						//組thumbnail slider
+						appendthumbnail(current_sub_phase_detail);
+                        if (msg.data.current_sub_phase_id == 0 && msg.data.control_strategy == "0xBF") {
+                            $(".current_sub_phase_time").html("<div style='font-size:26px;padding-top: 6px;position: absolute;left: 16px;'>閃燈</div>");
+                        }
+						openSlider();
+						$("#loading").hide();
+						$(".sp-slides").css('display', 'block');
+					});
+				},errorCallback);	
+				
+				resolve("Success in connect().");
+			} catch (e) {
+				reject("Fail in connect().");
+				$("#loading").show();
+			}
+		});
+		return p;	
+	}
+	//reconnect
+	function errorCallback(){
+		connect();
+	}
+	
+	//組當前畫面的資料
+	function appendLayer(data) {
+		var intersection_north = "";
+	    for (var j in data) {
+	        val = parseInt(data[j].sub_intersection_id);
+	        $(".sub_intersection_name_" + val).html(data[j].sub_intersection_direction+"("+data[j].name+")");
+	        // 北邊的路名給chart_traffic_flow用的
+	        if (val == 4 || val == 8) {
+	            if (val == 8) {
+					intersection_north = data[j].name+" / ";
+	            } else {
+	            	intersection_north += data[j].name;
+				}
+			}
+	        var color = "";
+	        if (data[j].flow_out_storage_space == "red") {
+	            color = "#FB563D";
+	        } else
+	            color = "#5BD99A";
+	        $(".subintersection_flowout_" + val).css("background-color", color);
+	        var color2 = "";
+	        if (data[j].flow_in_storage_space == "red") {
+	            color2 = "#FB563D";
+	        } else
+	            color2 = "#5BD99A";
+	        $(".subintersection_flowin_" + val).css("background-color", color2);
+	    }
+	    document.cookie = "intersection_north=" + intersection_north;
+	}
+
+	//小路口
+	function appendthumbnail(data) {
+		var html = "";
+		var left = -40;
+		var bottom = 71;
+	    for (var i in data) {
+	        html += `<div class="sp-thumbnail" style="${!!rotate ? 'width: 142px; height:220px' : ''}">` + `<div style="position:absolute; transform: rotate(${rotate}deg); ${!!rotate ? 'left:-40px; bottom:71px;':''}" ><img style="display: block; ${!!rotate ? 'transform: scaleY(1.2);' : ''}" src="../../img/D_bg_s_` + intersection_type + `.png"/>`;
+			if (data[i].sub_intersection_1_light != "N"){
+				html += '<img class="corner_1" src="../../img/pic_s_' + data[i].sub_intersection_1_light + '.png"/>';
+			}
+			if (data[i].sub_intersection_2_light != "N"){
+			 	html += '<img class="corner_2" src="../../img/pic_s_' + data[i].sub_intersection_2_light + '.png"/>';
+			}
+			if (data[i].sub_intersection_3_light != "N"){
+			 	html += '<img class="corner_3" src="../../img/pic_s_' + data[i].sub_intersection_3_light + '.png"/>';
+			}
+			if (data[i].sub_intersection_4_light != "N"){
+			 	html += '<img class="corner_4" src="../../img/pic_s_' + data[i].sub_intersection_4_light + '.png"/>';
+			}
+			if (data[i].sub_intersection_5_light!="N"){
+			 	html += '<img class="corner_5" src="../../img/pic_s_' + data[i].sub_intersection_5_light + '.png"/>';
+			}
+			if (data[i].sub_intersection_6_light!="N"){
+			 	html += '<img class="corner_6" src="../../img/pic_s_' + data[i].sub_intersection_6_light + '.png"/>';
+			}
+			if (data[i].sub_intersection_7_light != "N"){
+			 	html += '<img class="corner_7" src="../../img/pic_s_' + data[i].sub_intersection_7_light + '.png"/>';
+			}
+			if (data[i].sub_intersection_8_light != "N"){
+			 	html += '<img class="corner_8" src="../../img/pic_s_' + data[i].sub_intersection_8_light + '.png"/>';
+			}
+			
+			html += `</div><div class="subintersection_num" style="position:absolute; z-index:2; ${!!rotate ? 'left:-36px; bottom:0px' : 'left:0px; bottom:-180px'}">時相` + data[i].sub_phase_id 
+				+` 時間` + data[i].effect_time_total +`</div>` +`</div>`;
+	        //時相週期時間
+	        if (data[i].sub_phase_id == current_sub_phase_id + 1) {
+	            $(".current_sub_phase_time").html(data[i].effect_time_total + '<div style="font-size:12px !important;display: inline;">&nbsp;&nbsp;Sec</div>');
+	            $(".arrows_270").html((data[i].sub_intersection_1_light != "N" ? ('<img src="../../img/pic_' + data[i].sub_intersection_1_light + '.png" width="150px" height="37px"/>') : ''));
+	            $(".arrows_0").html((data[i].sub_intersection_2_light != "N" ? ('<img src="../../img/pic_' + data[i].sub_intersection_2_light + '.png" width="150px" height="37px"/>') : ''));
+	            $(".arrows_90").html((data[i].sub_intersection_3_light != "N" ? ('<img src="../../img/pic_' + data[i].sub_intersection_3_light + '.png" width="150px" height="37px"/>') : ''));
+				$(".arrows_180").html((data[i].sub_intersection_4_light != "N" ? ('<img src="../../img/pic_' + data[i].sub_intersection_4_light + '.png" width="150px" height="37px"/>') : ''));
+				// $(".arrows_270").html((data[i].sub_intersection_5_light != "N" ? ('<img src="../../img/pic_' + data[i].sub_intersection_5_light + '.png" />') : ''));
+	            $(".sub_intersection_arrows_6").html((data[i].sub_intersection_6_light != "N" ? ('<img src="../../img/pic_' + data[i].sub_intersection_6_light + '.png" width="150px" height="37px"/>') : ''));
+	            // $(".arrows_90").html((data[i].sub_intersection_7_light != "N" ? ('<img src="../../img/pic_' + data[i].sub_intersection_7_light + '.png" />') : ''));
+	            $(".sub_intersection_arrows_8").html((data[i].sub_intersection_8_light != "N" ? ('<img src="../../img/pic_' + data[i].sub_intersection_8_light + '.png" width="150px" height="37px"/>') : ''));
+	        }
+		}
+	    $("#slider-bar").html(html);
+	}
+
+	function openSlider() {
+
+	    $('#slider_canvas').sliderPro({
+	        width: 1920,
+	        height: 820,
+	        // arrows: true,
+	        buttons: false, //最下層多小圈圈按鈕
+			waitForLayers: true,
+			thumbnailWidth: !!rotate ? 140 : 220 ,
+	        thumbnailHeight: !!rotate ? 220 : 190,
+	        thumbnailPointer: true,
+	        autoplay: false, //自動滑動
+	        autoScaleLayers: false,
+	        thumbnailPosition: 'right',
+	        touchSwipe: false,
+	        thumbnailTouchSwipe: false
+	            // updateHash:true
+	            // breakpoints: {
+	            // 	500: {
+	            // 		thumbnailWidth: 1200,
+	            // 		thumbnailHeight: 50
+	            // 	}
+	            // }
+	    });
+	    $('#slider_canvas').sliderPro('gotoSlide', current_sub_phase_id);
+	    // $( '#slider_canvas' ).sliderPro( 'gotoSlide', 1 );
+	}
+
+	function removejscssfile(filename, filetype) {
+	    var targetelement = (filetype == "js") ? "script" : (filetype == "css") ? "link" : "none"
+	    var targetattr = (filetype == "js") ? "src" : (filetype == "css") ? "href" : "none"
+	    var allsuspects = document.getElementsByTagName(targetelement)
+	    for (var i = allsuspects.lengtsh; i >= 0; i--) {
+	        if (allsuspects[i] && allsuspects[i].getAttribute(targetattr) != null && allsuspects[i].getAttribute(targetattr).indexOf(filename) != -1)
+	            allsuspects[i].parentNode.removeChild(allsuspects[i])
+	    }
+	}
+
+	function addCSS(val) {
+	    var link = document.createElement('link');
+	    link.type = 'text/css';
+	    link.rel = 'stylesheet';
+	    link.href = '/css/intersection_for_' + val + '.css';
+	    document.getElementsByTagName("head")[0].appendChild(link);
+	}
+
+	function videoUrl(url) {
+	    // console.log("in "+url);
+	    $("#life_stream").html('<img src="' + url + '" alt="">');
+	}
+	
+	// Binding each link button on the page.
+	function bindClickEvent() {	
+		 // Binding intersection select box change event.
+		$("#intersection_select").change(function() {
+			disconnect();
+			document.cookie = "intersection=" + $(this).val();
+			window.location.reload();
+		});
+
+		// Binding click event for back link.
+		$("#back_link").click(function () {
+			location.href = 'index.html';
+		});
+
+		// Binding click event for displaying each function link.
+		/* $("#link_intersection_traffic").click(function () {
+			$("#side_content iframe").attr('src', "chart_traffic_flow.html"); 
+			$("#right_side_popup").show();       
+			$("#side_content").stop().animate({ width: "1467px" });
+		});
+		$("#link_device_location").click(function(){
+			$("#side_content iframe").attr('src', "chart_device_location.html"); 
+			$("#right_side_popup").show();       
+			$("#side_content").stop().animate({ width: "1467px" });
+		});
+		$("#link_traffic_summay").click(function(){
+			$("#side_content iframe").attr('src', "chart_traffic_summay.html"); 
+			$("#right_side_popup").show();       
+			$("#side_content").stop().animate({ width: "1467px" });
+		}); */
+
+		// Binding click event for hiding right side popup window.
+		/* $("#right_side_popup").click(function () {
+			$("#side_content").stop().animate({ width: "0" }, function () {
+				$("#right_side_popup").hide();
+				$("#side_content iframe").attr('src', "blank.html"); 
+			});
+		}); */
+	}
+
+	// Disconnect all websocket connections when leave the page.
+	window.onbeforeunload = null;
+	$(window).bind('beforeunload',function(){
+		disconnect();
+	});
+	function disconnect() {
+	    for (const sub in this.stompClient.subscriptions) {
+	        if (this.stompClient.subscriptions.hasOwnProperty(sub)) {
+	            this.stompClient.unsubscribe(sub);
+	        }
+	    }
+	}
+
+</script>
+</head>
+<body>
+	<div class="main">
+		<div class='headerLeft'>
+			<div class='back_link'>
+				<a href='#' id="back_link">
+					<img src="/img/btn_back.svg" alt=''>
+					<span>Back</span>
+				</a>
+			</div>
+			<!-- <div id="right_side_popup" class="right_side_popup">
+				<div id="side_content" class="side_content">
+					<iframe src="blank.html" width="1467px" height="968px" frameborder="0" scrolling="yes"></iframe>
+				</div>
+			</div> -->
+			<div class='intersection tab'>
+				<select id="intersection_select"></select>
+			</div>
+			<div class='chart_section'>
+				<div class='chart_link'>
+					<!-- <a href='#' id="link_intersection_traffic"> -->
+					<a href='../chart_traffic_flow.html' id="link_intersection_traffic">
+						轉向交通量圖
+					</a>
+				</div>
+				<div class='chart_link'>
+					<!-- <a href='#' id="link_device_location"> -->
+					<a href='../chart_device_location.html' id="link_device_location">
+						設備位置圖
+					</a>
+				</div>
+				<div class='chart_link'>
+					<!-- <a href='#' id="link_traffic_summay"> -->
+					<a href='../chart_traffic_summay.html' id="link_traffic_summay">
+						分時流量圖
+					</a>
+				</div>
+			</div>
+		</div>
+		<div style="position: absolute;background-color: #318386;top:880px;height:250px;width: 100%;"></div>
+		<div id="loading" style="position: absolute;top: 50%;left: 50%;font-size: 20px;font-family: 微軟正黑體;text-align: center;z-index: 99;"><img src="img/loading.gif"/><br>資料加載中...</div>
+		<div id="slider_canvas" class="slider-pro">
+			<div class="sp-slides" style="display: none;"></div>	
+			<div class="sp-thumbnails" id="slider-bar" ></div>
+		</div>
+	</div>	
+	<div style="display: none;">
+		<div id="life_stream"></div>
+	</div>
+</body>
+</html>

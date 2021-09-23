@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wistron.swpc.wismarttrafficlight.mapper.SubPhaseMapper">
+
+    <select id="selectByTimingUuid" resultType="SubPhase">
+        SELECT b.id, a.timing_uuid, b.sub_intersection_1_light, b.sub_intersection_2_light,
+            b.sub_intersection_3_light, b.sub_intersection_4_light, b.sub_intersection_5_light,
+            b.sub_intersection_6_light, b.sub_intersection_7_light, b.sub_intersection_8_light,
+            a.effect_time_step_1, a.effect_time_step_2, a.effect_time_step_3, a.effect_time_step_4,
+            a.effect_time_step_5
+        FROM sub_phase a, intersection_phase b
+        WHERE a.intersection_phase_uuid = b.uuid
+          AND timing_uuid = #{timing_uuid}
+        ORDER BY b.id
+    </select>
+
+</mapper>

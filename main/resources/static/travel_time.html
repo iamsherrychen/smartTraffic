@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type"  X-Content-Type-Options="nosniff" content="text/html; charset=UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Document</title>
+	<script src="js/jquery-3.6.0.min.js"></script>
+  <script type="text/javascript" src="https://maps.nlsc.gov.tw/O09/js/jquery.js"></script>
+  <script type="text/javascript" src="https://maps.nlsc.gov.tw/O09/openlayers/OpenLayers_re.js"></script>
+  <script type="text/javascript" src="https://maps.nlsc.gov.tw/O09/script/js/script_util.js"></script>
+  <script type="text/javascript" src="js/script_map.js"></script>
+  <script type="text/javascript" src="js/axios.min.js"></script>
+  <script src="js/stomp.min.js"></script>
+  <script src="js/env.js"></script>
+  <script src="js/moment.min.js"></script>
+  <link href="https://maps.nlsc.gov.tw/O09/script/css/qt_style.css" rel="stylesheet" type="text/css" />
+  <link href="https://maps.nlsc.gov.tw/O09/script/css/style.css" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+  html { font-family: sans-serif; }
+  body { 
+    margin: 0; 
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+	#iTaiwanMaps {
+		height: calc(100vh - 60px);
+		width: 100%;
+	}
+	#map {
+		height: calc(100vh - 60px);
+		width: 100%;
+	}
+  .olControlnlscButton { display: none; }
+  </style>
+</head>
+<body>
+  <div id="left_side_popup_google" class="left_side_popup">
+    <div id="side_content_google" class="side_content">
+        <!-- Warning: iframe src="#" will cause twice websocket connection, do not use it. -->
+        <iframe src="blank.html" width="1467px" height="968px" frameborder="0" scrolling="no"></iframe>
+    </div>
+  </div>
+  <div class='headerLeft'>
+    <div class='back_link'>
+      <a href='#' id="back_link">
+        <img src="/img/btn_back.svg" alt=''>
+        <span>Back</span>
+      </a>
+    </div>
+    <div style="width: 200px;position: relative;line-height: 25px;left: 200px;" id="traffic_trends_chart_google">
+      <p style="font-family: 微軟正黑體;padding: 10px;font-size: 20px;cursor: pointer;"><img
+              style="margin-right: 15px;" src="../../img/pic_search.svg">流量趨勢圖查詢</p>
+    </div>
+    <div id="intersection_name_html" class='tab'> 中正東路-民安路 </div>
+    <select id="project_name_html" class="select_project_style" name=" project" type="radio" onchange="changeCenter(value);">
+      <option value="dayuan" selected>大園案</option>
+      <option value="daju" >大竹案</option>
+    </select>
+  </div>
+  <div id="iTaiwanMaps" ><!-- 自行設定地圖位置及大小  -->
+  <div class="table" style="z-index: 1000;">
+    <div class="average_speed_road_direction_forward" id="average_speed_road_direction_forward"></div>
+    <div class="average_speed_road_direction_reverse" id="average_speed_road_direction_reverse"></div>
+    <div class="average_speed_east" id="average_speed_east"></div>
+    <div class="average_speed_west" id="average_speed_west"></div>
+    <div class="travel_time_road_direction_forward" id="travel_time_road_direction_forward"></div>
+    <div class="travel_time_road_direction_reverse" id="travel_time_road_direction_reverse"></div>
+    <div class="travel_time_east" id="travel_time_east"></div>
+    <div class="travel_time_west" id="travel_time_west"></div>
+    <div class="update_time_speed_state" id="update_time"></div>
+  </div>
+</body>
+<script type="text/javascript">
+  var markdata = { list: [] };
+  var stompClient = null,
+      table_msg = null,
+      center = null,
+      daju_flag = false; //紀錄daju project的首頁資訊要顯示主幹道還是支道, true：主幹道、false：支道
+
+
+  (function() {
+    getIntersections()
+    .then(data => {
+      markdata.list = data;
+      initMap('iTaiwanMaps', "ZH-TW")
+      createPlacemarkFromJSon();
+      return changeCenter($('#project_name_html').val() || center)
+    })
+    .then(data => subscribe())
+  })(jQuery)
+
+
+  // step 1. get map infos
+  function getIntersections() {
+    return new Promise((resolve, reject) => { 
+      axios.get('/api/intersections/')
+        .then(({ data: { data } }) => resolve(data.map(da => ({
+          id: da.id,
+          lon: da.center_longitude,
+          lat: da.center_latitude,
+          label: da.name,
+          pic: "icon_marker.png",
+          color: "#EC1010",
+          url: ""
+        }))))
+        .catch(err => reject(err))
+    })
+  }
+
+  function subscribe() {
+    stompClient = Stomp.client(env.getWsUrl());
+    stompClient.connect({}, frame => {
+      stompClient.subscribe('/topic/area_statistic/google', res => {
+        var response = JSON.parse(res.body)
+        var msg = response.data;
+        if (response.success) {
+            setInterval(changeTable(msg), 10000)
+            $("#update_time").html("更新時間: " + moment(response.timestamp).format('YYYY-MM-DD HH:mm:ss'));
+        } else {
+            $("#average_speed_road_direction_forward").html("N/A");
+            $("#average_speed_road_direction_reverse").html("N/A");
+            $("#average_speed_east").html("N/A");
+            $("#average_speed_west").html("N/A");
+            $("#travel_time_road_direction_forward").html("N/A");
+            $("#travel_time_road_direction_reverse").html("N/A");
+            $("#travel_time_east").html("N/A");
+            $("#travel_time_west").html("N/A");
+            $("#update_time").html("更新時間: " + "N/A");
+        }
+      })
+    })
+  }
+
+  // set center
+  function changeCenter(value = null) {
+    return new Promise(resolve => {
+      center = value;
+      var project_name = { 
+        dayuan: { lon: 121.207546, lat: 25.059419 },
+        daju: { lon: 121.229678, lat: 25.027261  }
+      }
+      let Lon = project_name[value].lon, 
+      Lat = project_name[value].lat
+      resolve(map.setCenter(new OpenLayers.LonLat(Lon,Lat).transform(fromProjection,toProjection), 17)); 
+    })
+  }
+
+  function changeTable(msg) {
+    table_msg = msg;
+    daju_flag = !daju_flag
+    if(center === "dayuan"){
+      $("#average_speed_road_direction_forward").html("東向");
+      $("#average_speed_road_direction_reverse").html("西向");
+      $("#travel_time_road_direction_forward").html("東向");
+      $("#travel_time_road_direction_reverse").html("西向");
+      $("#average_speed_east").html(table_msg.average_car_speed_east.toFixed(1));
+      $("#average_speed_west").html(table_msg.average_car_speed_west.toFixed(1));
+      $("#travel_time_east").html(table_msg.travel_time_east);
+      $("#travel_time_west").html(table_msg.travel_time_west);
+    }else {
+      if (daju_flag) {
+        $("#average_speed_road_direction_forward").html("台31線上匣道");
+        $("#average_speed_road_direction_reverse").html("台31線下匣道");
+        $("#travel_time_road_direction_forward").html("台31線上匣道");
+        $("#travel_time_road_direction_reverse").html("台31線下匣道");
+        $("#average_speed_east").html(table_msg.average_car_speed_dazu_nqr_forward.toFixed(1));
+        $("#average_speed_west").html(table_msg.average_car_speed_dazu_nqr_reverse.toFixed(1));
+        $("#travel_time_east").html(table_msg.travel_time_dazu_nqr_forward);
+        $("#travel_time_west").html(table_msg.travel_time_dazu_nqr_reverse); 
+      } else {
+        $("#average_speed_road_direction_forward").html("中正東路南向");
+        $("#average_speed_road_direction_reverse").html("中正東路北向");
+        $("#travel_time_road_direction_forward").html("中正東路南向");
+        $("#travel_time_road_direction_reverse").html("中正東路北向");
+        $("#average_speed_east").html(table_msg.average_car_speed_dazu_zzer_forward.toFixed(1));
+        $("#average_speed_west").html(table_msg.average_car_speed_dazu_zzer_reverse.toFixed(1));
+        $("#travel_time_east").html(table_msg.travel_time_dazu_zzer_forward);
+        $("#travel_time_west").html(table_msg.travel_time_dazu_zzer_reverse);
+      }
+    }
+  }
+
+
+  // Query traffic trends chart popup.
+  $("#traffic_trends_chart_google").click(function () {
+      $("#side_content_google iframe").attr('src', "chart_traffic_trends_google.html");
+      $("#left_side_popup_google").show();
+      $("#side_content_google").stop().animate({
+          width: "1467px"
+      });
+  });
+
+  $("#left_side_popup_google").click(function () {
+      $("#side_content_google").stop().animate({
+          width: "0"
+      }, function () {
+          $("#left_side_popup_google").hide();
+      });
+  });
+
+  </script>
+</html>

@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type"  X-Content-Type-Options="nosniff" content="text/html; charset=utf-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>流量趨勢查詢</title>
+    <link href="css/c3.css" rel="stylesheet">
+    <link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet">
+    <link href="css/boostrap.min.css" rel="stylesheet">
+    <link href="css/jquery-ui.css" rel="stylesheet">
+    <!-- <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet"> -->
+
+    <script src="js/env.js"></script>
+    <script src="js/chart_filter.js"></script>
+    <script src="js/chart_filter_daju.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/stomp.min.js"></script>
+    <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> -->
+    <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js"></script> -->
+    <script src="js/d3-5.8.2.min.js" charset="utf-8"></script>
+    <script src="js/c3.min.js"></script>
+    <script src="js/jquery-2.2.4-1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/moment.js"></script>
+    <script src="js/bootstrap-datetimepicker.min.js"></script>
+
+</head>
+<style>
+    body {
+        background-color: #F7F7F7;
+        width: 1460px;
+    }
+    /* g.c3-shapes-速度-東向 path {
+      stroke-width: 30;
+    } */
+
+    .header {
+        color: #707070;
+        display: inline;
+        font-family: 微軟正黑體;
+        font-size: 20px;
+        height: 65px;
+        line-height: 65px;
+    }
+    
+    #ui-datepicker-div {
+        font: 92.5% "Trebuchet MS", sans-serif;
+    }
+    
+    #datepicker1 {
+        border: 1px solid #4FB3B5;
+        background: #FFFFFF 0% 0% no-repeat padding-box;
+        opacity: 1;
+    }
+    
+    .ui-widget-header {
+        background: white;
+        color: #4FB3B5;
+    }
+    
+    .ui-widget-header a {
+        color: #4FB3B5;
+    }
+    
+    .ui-state-default {
+        background: white;
+    }
+    
+    .c3-axis-y text {
+        font-size: 15px;
+        fill: #707070;
+    }
+    
+    .c3-axis-y2 text {
+        font-size: 15px;
+        fill: #707070;
+        font-family: 微軟正黑體;
+    }
+    
+    .c3-axis-x text {
+        font-size: 12px;
+        fill: #707070;
+    }
+    
+    .c3-line {
+        stroke-width: 4px;
+    }
+    
+    div {
+        margin: 20px;
+    }
+    
+    .min_selector input[type="radio"] {
+        display: none;
+    }
+    
+    .min_selector input[type="radio"]+label {
+        display: inline-block;
+        background-color: white;
+        cursor: pointer;
+        /* padding: 15px; */
+        border-radius: 5px;
+        width: 150px;
+        height: 36px;
+        text-align: center;
+        line-height: 36px;
+        font-family: 微軟正黑體;
+        color: #707070;
+        font-size: 16px;
+    }
+    
+    .min_selector input[type="radio"]:checked+label {
+        background-color: #4FB3B5;
+        color: #fff;
+    }
+    
+    .min_selector {
+        display: inline-block;
+        background-color: white;
+        border-radius: 5px;
+        position: relative;
+        left: 3px;
+        top: 20px;
+        display: inline;
+        padding: 20px;
+    }
+    
+    #update_time {
+        font-family: 微軟正黑體;
+        color: #707070;
+        top: 12px;
+        left: 1200px;
+        position: absolute;
+        display: inline;
+        text-align: right;
+        font-size: 16px;
+    }
+    
+    .c3 text {
+        font-size: 16px;
+    }
+    
+    .c3-legend-background {
+        stroke: none;
+        fill: #f7f7f7;
+    }
+
+</style>
+</head>
+
+<body>
+    <div class="header">
+        流量趨勢圖查詢
+    </div>
+    <div id="update_time"></div>
+    <div style="color: #707070;font-size: 18px;font-family: 微軟正黑體;">日期</div>
+    <!-- 左方日期 -->
+    <div style="color: #707070;font-size: 18px;font-family: 微軟正黑體;display: -webkit-box;">
+        <div class='input-group date' id='datetimepicker1' style="width: 300px;margin: 0px;">
+            <input type='text' class="form-control" id="datetimepickerdate" />
+            <span class="input-group-addon">
+                <span >
+                    <img src="../img/icon_day.png"/>
+                </span>
+            </span>
+        </div>
+        <div style="display: inline;">
+            <button id="time_click" type="submit" style="width: 80px;height: 40px;background-color: #4FB3B5;border-radius: 5px;color: #FFFFFF;border: 0px;font-family: 微軟正黑體;" 
+            onclick="changeTime();">確定</button>
+        </div>
+    </div>
+
+    <button
+            style="width: 100px;height: 40px;background-color: #4FB3B5;border-radius: 5px;color: #FFFFFF;border: 0px;font-family: 微軟正黑體;margin: 12px 10px;float: right;"
+            onclick="download_float();">流量下載</button>
+    <button
+            style="width: 100px;height: 40px;background-color: #4FB3B5;border-radius: 5px;color: #FFFFFF;border: 0px;font-family: 微軟正黑體;margin: 12px 10px;float: right;"
+            onclick="download_time();">時制下載</button>
+
+    <div class="min_selector">
+        <input type="radio" id="dayuan" name="project" onclick="changeProject(id);" value="dayuan">
+        <label for="dayuan">大園案</label>
+
+        <input type="radio" id="daju" name="project" onclick="changeProject(id);" value="daju">
+        <label for="daju">大竹案</label>
+    </div>
+    <hr style="height:2pt; visibility:hidden;" />
+    <div class="min_selector">
+        <input type="radio" id="trafficTrends" name="chart" value="traffic_trends_chart" onclick="changeChart(this.id);">
+        <label for="trafficTrends">流量趨勢圖</label>
+
+        <input type="radio" id="travelTime" name="chart" value="travel_time_chart" onclick="changeChart(this.id);">
+        <label for="travelTime">旅行時間趨勢圖</label>
+
+        <input type="radio" id="stalling" name="chart" value="stalling_chart" onclick="changeChart(this.id);">
+        <label for="stalling">停等延滯趨勢圖</label>
+    </div>
+
+    <div style="float: right;margin: 30px 20px;"><img src="../img/speedicon.png" alt=""><img src="../img/PCUicon.png" alt=""></div>
+    <div id="chart"></div>
+</body>
+<script type="text/javascript">
+    var stompClient = null;
+    var intersection_name_array = [];
+    var new_intersection_name_array = [];
+    var hide_intersection_array = [];
+    var changeProject_val = "dayuan";
+    var changeChart_val = "trafficTrends";
+    var current_api = "time_statistic"; //time_statistic or car_delay
+    var Msg;//目前分類後的資料
+    // var tt_msg;
+    // var cd_msg;
+    var tt_yuan_msg;
+    var tt_ju_msg;
+    var cd_yuan_msg;
+    var cd_ju_msg;
+
+    
+    $(function() {
+        createDate();
+        connect();
+        setTimeout(function () {
+            $(`input[value=${changeProject_val}]`).prop('checked', true);
+            $(`input[value=${changeChart_val}]`).prop('checked', true);
+            document.getElementById(changeProject_val).click();
+            document.getElementById(changeChart_val).click();
+        }, 1500);
+    });
+
+    window.onbeforeunload = null;
+    $(window).bind('beforeunload', function() {
+        disconnect();
+    });
+
+    function connect() {
+        stompClient = Stomp.client(env.getWsUrl())
+        stompClient.connect({}, function(frame) {
+            // console.log('connected: ' + frame);            
+            stompClient.subscribe('/topic/time_statistic/google', function(resp) {
+                //預設為大園的流量趨勢圖
+                var msg = JSON.parse(resp.body).data;
+                $("#update_time").html("更新時間:" + new Date(JSON.parse(resp.body).timestamp).Format('yyyy-MM-dd hh:mm:ss'));
+                current_api = "time_statistic";
+                projectFilter(msg);
+                $(`input[value=${changeProject_val}]`).prop('checked', true);
+                $(`input[value=${changeChart_val}]`).prop('checked', true);
+            });
+            stompClient.subscribe('/topic/car_delay', function(resp) {
+                var msg = JSON.parse(resp.body).data;
+                $("#update_time").html("更新時間:" + new Date(JSON.parse(resp.body).timestamp).Format('yyyy-MM-dd hh:mm:ss'));
+                // changeProject_val = msg;
+                current_api = "car_delay";
+                projectFilter(msg);
+                // changeChart(changeChart_val);
+                // document.getElementById(changeProject_val).click();
+                // document.getElementById(changeChart_val).click();
+            });            
+        }, errorCallback)
+    }
+
+    //reconnect
+    function errorCallback() {
+        connect();
+    }
+        
+    function changeTime(){
+        getTime_statistic();
+        getCar_delay();
+        setTimeout(function () {            
+            $(`input[value=${changeProject_val}]`).prop('checked', true);
+            $(`input[value=${changeChart_val}]`).prop('checked', true);
+            document.getElementById(changeProject_val).click();
+            document.getElementById(changeChart_val).click();
+        }, 1500);
+    }
+
+    var noneFiltData;
+    /* 查詢今天以外的日期使用api查*/
+    function getTime_statistic() {
+        disconnect();
+        var aj = $.ajax({
+            url: '../api/history/time_statistic/google?date=' + $("#datetimepickerdate").val(), // 跳轉到 action 
+            type: 'get',
+            cache: false,
+            dataType: 'json',
+            success: function(data) {
+                // $('input[value=changeProject_val]').prop('checked', true);
+                $("#update_time").html("更新時間:" + new Date(data.timestamp).Format('yyyy-MM-dd hh:mm:ss'));
+                noneFiltData = data.data;
+                current_api = "time_statistic";
+                projectFilter(noneFiltData);
+                $(`input[value=${changeProject_val}]`).prop('checked', true);
+                $(`input[value=${changeChart_val}]`).prop('checked', true);
+                // arrangeData(data.data);
+            },
+            error: function(response) {
+                var message = response.responseJSON.data;
+                alert(message);
+            }
+        });
+    }
+
+    var noneFiltData_delay;
+    /* 查詢今天以外的日期使用api查*/
+    function getCar_delay() {
+        // disconnect();
+        var aj = $.ajax({
+            url: '../api/history/car_delay?date=' + $("#datetimepickerdate").val(), // 跳轉到 action 
+            type: 'get',
+            cache: false,
+            dataType: 'json',
+            success: function(data) {
+                $("#update_time").html("更新時間:" + new Date(data.timestamp).Format('yyyy-MM-dd hh:mm:ss'));
+                // $('input[value=changeProject_val]').prop('checked', true);
+                noneFiltData_delay = data.data;
+                current_api = "car_delay";
+                projectFilter(noneFiltData_delay);
+                // changeChart(changeChart_val);
+                // document.getElementById(changeProject_val).click();
+                // document.getElementById(changeChart_val).click();                
+            },
+            error: function(response) {
+                var message = response.responseJSON.data;
+                alert(message);
+            }
+        });
+        
+        
+    }
+    
+    function createDate() {
+        var myDate = new Date();
+        myDate.setDate(myDate.getDate() - 14);
+        $('#datetimepicker1').datetimepicker({
+            defaultDate: new Date(),
+            minDate: myDate,
+            maxDate: new Date(),
+            format: 'YYYY-MM-DD'
+
+        });
+    }
+
+    function changeProject(val) {
+        changeProject_val = val;
+        changeChart(changeChart_val);
+    }
+
+    function changeChart(val) {    
+        changeChart_val = val;
+        // document.getElementById("time_click").click(); //等同按下日期確定button
+        if(changeProject_val === "dayuan"){
+            if(changeChart_val === "stalling"){
+                arrangeData(cd_yuan_msg);
+            }else{
+                arrangeData(tt_yuan_msg);                
+            }
+        }else{
+            if(changeChart_val === "stalling"){
+                arrangeData(cd_ju_msg);
+            }else{
+                arrangeData(tt_ju_msg);
+            }
+        }
+    }
+
+    // project分類
+    function projectFilter(msg) {
+        var changeFilt = true;
+        for (var step = 0; step < 2; step++){
+            Msg =JSON.parse(JSON.stringify(msg));
+            const yuanId = ["H33701801", "H33701501", "H33700401", "H33700402", "H33701502"]
+            const chuId = ["H33700301-0-PC01", "H33700302-0-PC01"];
+            // if(changeFilt === true){
+            //     Msg.forEach(m => {
+            //         var dayuan  = []
+            //         m.statistic_data.forEach(stat => yuanId.includes(stat.intersection_id) ? dayuan.push(stat) : false)
+            //         m.statistic_data = dayuan;
+            //         if(current_api === "car_delay"){
+            //             cd_yuan_msg = Msg;
+            //         }else{
+            //             tt_yuan_msg = Msg;
+            //         }
+            //         changeFilt = false;
+            //     })
+            // }else{
+            //     Msg.forEach(m => {
+            //         var daju = []
+            //         m.statistic_data.forEach(stat => chuId.includes(stat.intersection_id) ? daju.push(stat) : false)
+            //         m.statistic_data = daju;
+            //         if(current_api === "car_delay"){
+            //             cd_ju_msg = Msg;
+            //         }else{
+            //             tt_ju_msg = Msg;
+            //         }
+            //         // changeFilt = true;
+            //     })
+            // }
+            //2021/03/11資料更動
+            //car_delay才需要做project分類
+            if(current_api === "car_delay"){
+                if(changeFilt === true){
+                    Msg.forEach(m => {
+                        var dayuan  = []
+                        m.statistic_data.forEach(stat => yuanId.includes(stat.intersection_id) ? dayuan.push(stat) : false)
+                        m.statistic_data = dayuan;
+                        cd_yuan_msg = Msg;
+                        changeFilt = false;
+                    })
+                }else{
+                    Msg.forEach(m => {
+                        var daju = []
+                        m.statistic_data.forEach(stat => chuId.includes(stat.intersection_id) ? daju.push(stat) : false)
+                        m.statistic_data = daju;
+                        cd_ju_msg = Msg;
+                    })
+                }
+            }
+            //time_static不分類
+            else{
+                tt_yuan_msg = Msg;
+                tt_ju_msg = Msg;
+            }
+        }
+    }
+
+    //將接收到的資料重新組合
+    function arrangeData(msg) {
+        var pcu_array = new Array();
+        var time_point_array = new Array();
+        //dayuan speed
+        var speed_array_east = new Array();
+        var speed_array_west = new Array();
+        // dayuan travel time
+        var travel_time_array_east = new Array();
+        var travel_time_array_west = new Array();
+        //daju speed
+        var speed_dazu_zzer_forward_array = new Array();
+        var speed_dazu_zzer_reverse_array = new Array();
+        var speed_dazu_nqr_forward_array = new Array();
+        var speed_dazu_nqr_reverse_array = new Array();
+        var speed_dazu_nqr_turn_zzer_forward_array = new Array();
+        var speed_dazu_nqr_turn_zzer_reverse_array = new Array();
+        //daju travel time
+        var travel_time_dazu_zzer_forward_array = new Array();
+        var travel_time_dazu_zzer_reverse_array = new Array();
+        var travel_time_dazu_nqr_forward_array = new Array();
+        var travel_time_dazu_nqr_reverse_array = new Array();
+        var travel_time_dazu_nqr_turn_zzer_forward_array = new Array();
+        var travel_time_dazu_nqr_turn_zzer_reverse_array = new Array();
+        //car delay
+        var car_delay = new Array();
+        new_intersection_name_array = []
+        intersection_name_array = []
+
+        for (var i in msg) {
+            // Time points
+            time_point_array.push(msg[i].time_point);
+
+            // dayuan speed values
+            speed_array_east.push(msg[i].speed_east);
+            speed_array_west.push(msg[i].speed_west);
+            // dayuan travel time values
+            travel_time_array_east.push(msg[i].travel_time_east)
+            travel_time_array_west.push(msg[i].travel_time_west)
+
+            //daju speed
+            speed_dazu_zzer_forward_array.push(msg[i].speed_dazu_zzer_forward);
+            speed_dazu_zzer_reverse_array.push(msg[i].speed_dazu_zzer_reverse);
+            speed_dazu_nqr_forward_array.push(msg[i].speed_dazu_nqr_forward);
+            speed_dazu_nqr_reverse_array.push(msg[i].speed_dazu_nqr_reverse);
+            speed_dazu_nqr_turn_zzer_forward_array.push(msg[i].speed_dazu_nqr_turn_zzer_forward);
+            speed_dazu_nqr_turn_zzer_reverse_array.push(msg[i].speed_dazu_nqr_turn_zzer_reverse);
+            //daju travel time
+            travel_time_dazu_zzer_forward_array.push(msg[i].travel_time_dazu_zzer_forward);
+            travel_time_dazu_zzer_reverse_array.push(msg[i].travel_time_dazu_zzer_reverse);
+            travel_time_dazu_nqr_forward_array.push(msg[i].travel_time_dazu_nqr_forward);
+            travel_time_dazu_nqr_reverse_array.push(msg[i].travel_time_dazu_nqr_reverse);
+            travel_time_dazu_nqr_turn_zzer_forward_array.push(msg[i].travel_time_dazu_nqr_turn_zzer_forward);
+            travel_time_dazu_nqr_turn_zzer_reverse_array.push(msg[i].travel_time_dazu_nqr_turn_zzer_reverse);
+
+            // Statistic data
+            var statistic_data = msg[i].statistic_data;
+            pcu_array[i] = new Array();
+            car_delay[i] = new Array();
+            for (var j in statistic_data) {
+                if(changeChart_val === "stalling"){
+                    var intersection_name = statistic_data[j].intersection_name;
+                    // FIX-ME - use intersection name instead
+                    pcu_array[i][j] = statistic_data[j].pcu;
+                    car_delay[i][j] = statistic_data[j].car_delay;
+                }else{
+                    var intersection_name = "null_intersection_name";
+                    // FIX-ME - use intersection name instead
+                    
+                    pcu_array[i][j] = 0;
+                    car_delay[i][j] = 0;
+                }
+
+                if (intersection_name_array.length < statistic_data.length) {
+                    intersection_name_array.push(intersection_name)
+                    new_intersection_name_array.push(intersection_name)
+                }
+            }                    
+        }
+        //2021/03/11結構更動
+            var sort_index = [];
+            new_intersection_name_array.sort(function(a, b) {
+                return a.localeCompare(b);
+            });
+            for (var i in intersection_name_array) {
+                sort_index[i] = intersection_name_array.indexOf(new_intersection_name_array[i])
+            }
+            var new_pcu_array = pcu_array[0].map(function(col, i) {
+                return pcu_array.map(function(row) {
+                    return row[i];
+                });
+            });
+
+            var new_car_delay = car_delay[0].map(function(col, i) {
+                return car_delay.map(function(row) {
+                    return row[i];
+                });
+            });
+            for (var k in new_pcu_array) {
+                new_pcu_array[k].unshift(intersection_name_array[k]);
+            }
+            for (var k in new_car_delay) {
+                new_car_delay[k].unshift(intersection_name_array[k]);
+            }
+
+            
+            var new_sort_pcu_array = new Array();
+            for (var l in new_pcu_array) {
+                new_sort_pcu_array.push(new_pcu_array[sort_index[l]]);
+            }
+
+        chart(
+            time_point_array, 
+            new_sort_pcu_array,
+            speed_array_east, 
+            speed_array_west, 
+            travel_time_array_east,
+            travel_time_array_west,
+            new_car_delay,
+            speed_dazu_zzer_forward_array,
+            speed_dazu_zzer_reverse_array,
+            speed_dazu_nqr_forward_array,
+            speed_dazu_nqr_reverse_array,
+            speed_dazu_nqr_turn_zzer_forward_array,
+            speed_dazu_nqr_turn_zzer_reverse_array,
+            travel_time_dazu_zzer_forward_array,
+            travel_time_dazu_zzer_reverse_array,
+            travel_time_dazu_nqr_forward_array,
+            travel_time_dazu_nqr_reverse_array,
+            travel_time_dazu_nqr_turn_zzer_forward_array,
+            travel_time_dazu_nqr_turn_zzer_reverse_array,
+        );
+    }
+
+    var pcu_chart;
+    function chart(time_point, 
+            data, 
+            speed_east, 
+            speed_west, 
+            travel_east, 
+            travel_west, 
+            car_delay,
+            speed_dazu_zzer_forward_array,
+            speed_dazu_zzer_reverse_array,
+            speed_dazu_nqr_forward_array,
+            speed_dazu_nqr_reverse_array,
+            speed_dazu_nqr_turn_zzer_forward_array,
+            speed_dazu_nqr_turn_zzer_reverse_array,
+            travel_time_dazu_zzer_forward_array,
+            travel_time_dazu_zzer_reverse_array,
+            travel_time_dazu_nqr_forward_array,
+            travel_time_dazu_nqr_reverse_array,
+            travel_time_dazu_nqr_turn_zzer_forward_array,
+            travel_time_dazu_nqr_turn_zzer_reverse_array) {
+        // console.log(time_point, data, speed_east, speed_west, travel_east, travel_west, car_delay)
+        if(changeProject_val === "dayuan"){
+            let Chart_filter = new chart_filter(time_point, data, speed_east, speed_west, travel_east, travel_west, car_delay, changeChart_val, "google_chart");
+            if (pcu_chart != null) hide_intersection_array = pcu_chart.internal.hiddenTargetIds;
+            pcu_chart = c3.generate(Chart_filter.start_print());
+            pcu_chart.groups([intersection_name_array]);
+            if (hide_intersection_array.length != 0) {
+                for (var i in data) {
+                    for (var j in hide_intersection_array)
+                        if (hide_intersection_array[j] == data[i][0]) {
+                            pcu_chart.hide(data[i])
+                        }
+                }
+            }
+        }else{
+            let Chart_filter_daju = new chart_filter_daju(time_point, data, speed_dazu_zzer_forward_array, speed_dazu_zzer_reverse_array, speed_dazu_nqr_forward_array, speed_dazu_nqr_reverse_array, speed_dazu_nqr_turn_zzer_forward_array, speed_dazu_nqr_turn_zzer_reverse_array, travel_time_dazu_zzer_forward_array, travel_time_dazu_zzer_reverse_array, travel_time_dazu_nqr_forward_array,travel_time_dazu_nqr_reverse_array, travel_time_dazu_nqr_turn_zzer_forward_array, travel_time_dazu_nqr_turn_zzer_reverse_array, car_delay, changeChart_val, "google_chart");
+            if (pcu_chart != null) hide_intersection_array = pcu_chart.internal.hiddenTargetIds;
+            pcu_chart = c3.generate(Chart_filter_daju.start_print());
+            pcu_chart.groups([intersection_name_array]);
+            if (hide_intersection_array.length != 0) {
+                for (var i in data) {
+                    for (var j in hide_intersection_array)
+                        if (hide_intersection_array[j] == data[i][0]) {
+                            pcu_chart.hide(data[i])
+                        }
+                }
+            }
+        }
+    }
+
+    // History row data file downloading:float
+    function download_float() {
+        redirect('/api/history/download/flow?date=' + $("#datetimepickerdate").val())
+        $("#dialog").dialog("close");
+    }
+
+    // History row data file downloading:time
+    function download_time() {
+        redirect('/api/history/download/timeslot_status?date=' + $("#datetimepickerdate").val())
+        $("#dialog").dialog("close");
+    }
+
+    function disconnect() {
+        if (stompClient === null || !stompClient.subscriptions) {
+            return true;
+        }
+
+        if ((stompClient !== null) && (!!stompClient.subscriptions)){
+            for (const sub in stompClient.subscriptions) {
+                if (stompClient.subscriptions.hasOwnProperty(sub)) {
+                    stompClient.unsubscribe(sub);
+                }
+            }
+        }
+    }
+</script>

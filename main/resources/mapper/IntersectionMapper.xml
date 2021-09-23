@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wistron.swpc.wismarttrafficlight.mapper.IntersectionMapper">
+
+    <select id="selectAll" resultType="Intersection">
+        SELECT id, name, sub_phase_total, type_for_light_chart, type_for_traffic_flow, center_longitude, center_latitude, popup_position, rotate
+        FROM intersection
+    </select>
+
+    <select id="selectById" resultType="Intersection">
+        SELECT id, name, sub_phase_total, type_for_light_chart, type_for_traffic_flow, center_longitude, center_latitude, popup_position, rotate
+        FROM intersection
+        WHERE id = #{id}
+    </select>
+
+
+</mapper>

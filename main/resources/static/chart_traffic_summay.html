@@ -1,0 +1,385 @@
+<html>
+
+<head>
+	<meta http-equiv="Content-Type"  X-Content-Type-Options="nosniff" content="text/html; charset=utf-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>分時流量圖</title>
+	<link type="text/css" rel="stylesheet" href="css/common.css" />
+	<style type="text/css">
+		body {
+			/* background: #ccc; */
+			height: 884px;
+		}
+		table{
+			padding: 20px;
+			border-collapse: separate;
+			border-spacing: 0;
+			font-size: 20px;
+			width: 780px;
+
+		}
+		.flex {
+			display: flex;
+			padding: 15px 162px;
+			/* background-color: #61a0f8; */
+			flex-wrap: wrap;
+		}
+		td,th{
+			/* border: 1px solid #898989; */
+			padding: 20px;
+			/* text-align: center; */
+			font-family: 微軟正黑體;
+			background-color: white;
+		}
+		th{
+			background-color: #DBE8EA;
+			color: #707070;
+		}
+		td{
+			border-bottom:solid #898989 1px;
+		}
+		.header{
+			height: 60px;
+			background: #4FB3B54D 0% 0% no-repeat padding-box;
+			text-align: center;
+			font-size: 20px;
+			font-family: 微軟正黑體;
+			line-height: 60px;
+			color: white;
+			font-weight:bold;
+			/* width: 1467px; */
+		}
+		.body{
+			position: relative;
+			/* top:24px; */
+			/* background-image: url(/img/pic_intersection_bg.png);
+			background-repeat: no-repeat; */
+			background: #ccc;
+			height: 1020px;
+
+		}
+		.min_selector input[type="radio"] {
+			display: none;
+		}
+		.min_selector input[type="radio"] + label {
+			display: inline-block;
+			background-color: white;
+			cursor: pointer;
+			/* padding: 15px; */
+			border-radius: 5px;
+			width: 120px;
+			height: 36px;
+			text-align: center;
+			line-height: 36px;
+			font-family: 微軟正黑體;
+		}
+		.min_selector input[type="radio"]:checked + label {
+			background-color: #4FB3B5;
+			color: #fff;
+		}
+		.update_time_area_statistic{
+			font-size: 14px;
+			color: #363636;
+			font-family: 微軟正黑體;
+			position: absolute;
+			display: inline;
+			top: 24px;
+    		right: 32px;
+			text-align: right;
+		}
+		.item {
+			flex: 0 0;
+			/* margin: 5px; */
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+	</style>	
+	
+</head>
+
+<body>
+	<div>
+		<div class='back_link' style="top: 13px;">
+			<a href='#' id="back_link">
+				<img src="/img/btn_back.svg" alt=''>&nbsp;
+				<span>Back</span>
+			</a>
+		</div>
+		<div class="header">
+			<div class='intersection tab'>
+				<select id="intersection_select"></select>
+			</div>
+		</div>
+	</div>
+	<div class="body">
+		<div style="width: 400px;height:48px;background-color: white;border-radius: 5px;position: relative;left:182px;top: 24px;">
+			<div class="min_selector" style="line-height: 48px;text-align: center;" >
+				<input type="radio" id="1min" name="min" value="1" onclick="changeMinuteOfWs(this.value);" >
+				<label for="1min">1分鐘</label>
+		 
+				<input type="radio" id="15min" name="min" value="15" onclick="changeMinuteOfWs(this.value);">
+				<label for="15min">15分鐘</label>
+
+				<input type="radio" id="60min" name="min" value="60" onclick="changeMinuteOfWs(this.value);">
+				<label for="60min">60分鐘</label>
+			</div>
+
+		</div>
+		<div class="update_time_area_statistic"></div>
+		<div id="loading" style="position: absolute;top: 50%;left: 50%;font-size: 20px;font-family: 微軟正黑體;text-align: center;"><img src="img/loading.gif"/><br>資料加載中...</div>
+		<div class="flex">
+			<div class="item" id="sub_1"></div>
+			<div class="item" id="sub_2"></div>
+			<div class="item" id="sub_3"></div>
+			<div class="item" id="sub_4"></div>
+			<div class="item" id="sub_5"></div>
+			<div class="item" id="sub_6"></div>
+			<div class="item" id="sub_7"></div>
+			<div class="item" id="sub_8"></div>
+		</div>
+	</div>
+</body>
+<script src="js/env.js"></script>
+<script src="js/common.js"></script>
+<script src="js/jquery-3.4.1.min.js"></script>
+<script src="js/stomp.min.js"></script>
+<script>
+	var min=1;//Default time of duration.
+	var stompClient = null;
+	var intersection;
+
+	$(function () {
+		// $("#intersection_name").html(getCookie("intersection_name"));
+		getCurrentIntersectionId();
+		makeIntersectionSelectBox();
+		connect();
+		$('input[value=1]').prop('checked', true);
+
+		$("#intersection_select").change(function() {
+			document.cookie = "intersection=" + $(this).val();
+			window.location.reload();
+		});
+
+		$("#back_link").click(function () {
+			location.href = 'intersection.html';
+		});
+	});
+	var direction = {
+		0:"左轉",
+		1: "右轉",
+		2: "直行"
+		
+	}
+	window.onbeforeunload = null;
+	$(window).bind('beforeunload',function(){
+		disconnect();
+	});
+
+	// Step 1. Get current intersection ID from cookie.
+	function getCurrentIntersectionId(){
+	  intersection = getCookie("intersection");
+	}
+
+	//Step 2. Get dropdown list
+	function makeIntersectionSelectBox() {
+		var aj = $.ajax({
+			url: '../api/intersections', // 跳轉到 action 
+			type: 'get',
+			async: false,
+			cache: false,
+			dataType: 'json',
+			success: function(data) {
+				// console.log(data);
+				var content_html = "";
+				for (var ii in data.data) {
+					if((data.data[ii].id !== "H33700303") && (data.data[ii].id !== "H33700304")){
+						content_html += '<option value="' + data.data[ii].id + '">' + data.data[ii].name + '</option>'
+						if (intersection == data.data[ii].id) {
+							intersection_type = data.data[ii].type_for_light_chart;
+							//東匝路口在現場登態圖不算十字路口，但是在車流量圖是算十字路口
+							document.cookie = "intersection_type=" + data.data[ii].type_for_traffic_flow;
+							document.cookie = "intersection_name=" + data.data[ii].name;
+						}
+					}
+				}
+				$("#intersection_select").html(content_html);
+				$('#intersection_select option[value=' + intersection+ ']').attr('selected', 'selected');
+
+			},
+			error: function(response) {
+				var message = response.responseJSON.data;
+				alert(message);
+			},
+			complete: function() {}
+		});
+	}
+
+	// Step 3. Connect to websocket
+	function connect() {
+		stompClient = Stomp.client(env.getWsUrl())
+		stompClient.connect({}, function(frame) {
+			console.log('connected: ' + frame);
+			stompClient.subscribe('/topic/intersection/'+intersection+'/traffic_flow/duration/'+min, function(resp) {
+				var msg = JSON.parse(resp.body);
+				var data = msg.data;
+					var red_line = "#FB563D";
+					var green_line = "#5BD99A";
+					// console.log(JSON.stringify(resp.body));
+					$(".update_time_area_statistic").html("更新時間: "+new Date(JSON.parse(resp.body).timestamp).Format('yyyy-MM-dd hh:mm:ss'));
+					$("#loading").show();
+					for(var i in data){
+						// sub_intersection_id_array[i]=msg[i].sub_intersection_id;
+						$("#loading").hide();
+						if(!(data[i].sub_intersection_name === "台31線快")){
+							var id=data[i].sub_intersection_id;
+							// buildhtml(id,msg[i],msg[i].sub_data.length);
+							sorthtml(id,data[i],data[i].sub_data.length);
+						}
+					}
+					if(data.length>4)
+						$(".body").css("height","auto");
+					else
+						$(".body").css("height","1020px");
+					
+			});
+		},errorCallback)
+	}
+	//reconnect
+	function errorCallback(){
+		connect();
+	}
+
+	//改變目前連線ws的時間(1分鐘、5分鐘)
+	function changeMinuteOfWs(val){
+		min=val;
+		$(".item").empty();
+		//先中斷目前連線
+		disconnect();
+		$(".body").css("height","1020px");
+		//重新連線
+		connect();
+	}
+	
+	//畫交通流量圖的表格
+	//有排序的
+	function sorthtml(id,msg,rows){
+		if(!(msg.sub_intersection_name === "台31線快")){
+			var sortRight = new Array();
+			var sortLeft = new Array();
+			var sortStraight = new Array();
+			var newsorthtml="";
+			newsorthtml += '<table>'
+					+'<tr><th colspan=6 style="background-color:#86B9BA;color:#FFFFFF;border-top-left-radius: 10px;border-top-right-radius: 10px;">'+msg.sub_intersection_direction+'('+msg.sub_intersection_name+')</th></tr>'
+					+'<tr>'
+					+'<th>方向</th>'
+					+'<th>大車</th>'
+					+'<th>客車</th>'
+					+'<th>機車</th>'
+					+'<th>轉向率</th>'
+					+'<th>PCU</th>'
+					+'</tr>';
+			var flag=true;
+			for(var i=0; i<rows; i++){
+				var sub_data=msg.sub_data;
+				var sorthtml="";
+				if(!(sub_data[i].connected_sub_intersection_name === "台31線快")){
+					sorthtml +='<tr>'
+							+'<td border>'+direction[directionVal(id,sub_data[i].connected_sub_intersection_id)]+''+(sub_data[i].connected_sub_intersection_name!=null?sub_data[i].connected_sub_intersection_name:'')+'</td>'
+							+'<td>'+sub_data[i].flow_out_bigcar+'</td>'
+							+'<td>'+sub_data[i].flow_out_car+'</td>'
+							+'<td>'+sub_data[i].flow_out_motcar+'</td>'
+							+'<td>'+sub_data[i].flow_out_average_op+'</td>'
+					if(directionVal(id,sub_data[i].connected_sub_intersection_id)==1 && flag){
+						sorthtml+='<td rowspan= '+rows+' style="border-bottom-right-radius: 10px;border-left:solid #898989 1px;">'+msg.flow_out_total+'</td>';
+						flag=false;
+					}
+					sorthtml+='</tr>';
+
+					//右轉
+					if(directionVal(id,sub_data[i].connected_sub_intersection_id)==1){
+						sortRight.push(sorthtml);
+					}
+					//直行
+					if(directionVal(id,sub_data[i].connected_sub_intersection_id)==2){
+						sortStraight.push(sorthtml);
+					}
+					//左轉
+					if(directionVal(id,sub_data[i].connected_sub_intersection_id)==0){
+						sortLeft.push(sorthtml);
+					}
+				}
+			}
+			for(var i in sortRight){
+				newsorthtml += sortRight[i].replace('border','');
+			}
+			for(var i in sortStraight){
+				newsorthtml += sortStraight[i].replace('border','');
+			}
+			for(var i in sortLeft){
+				if(i==sortLeft.length-1){
+					sortLeft[i]= sortLeft[i].replace('border','style="border-bottom-left-radius: 10px"');
+				}else{
+					sortLeft[i]= sortLeft[i].replace('border','');
+				}
+				newsorthtml += sortLeft[i];
+			}
+			newsorthtml+='</table>';
+			if(rows!=0){
+				$("#sub_"+id).html(newsorthtml);
+			}
+		}
+	}
+	//沒排序的
+	// function buildhtml(id,msg,rows){
+	// 	var html="";
+	// 	// var sub_html="";
+	// 	html += '<table>'
+	// 		+'<tr><th colspan=6 style="background-color:#86B9BA;color:#FFFFFF;border-top-left-radius: 10px;border-top-right-radius: 10px;">'+msg.sub_intersection_name+'</th></tr>'
+	// 		+'<tr>'
+	// 		+'<th>方向</th>'
+	// 		+'<th>大車</th>'
+	// 		+'<th>客車</th>'
+	// 		+'<th>機車</th>'
+	// 		+'<th>轉向率</th>'
+	// 		+'<th>PCU</th>'
+	// 		+'</tr>'
+	// 		for(var i=0; i<rows; i++){
+	// 			var sub_data=msg.sub_data;
+				
+	// 			html +='<tr>'
+	// 					+'<td>'+directionVal(id,sub_data[i].connected_sub_intersection_id)+''+sub_data[i].connected_sub_intersection_name+'</td>'
+	// 					+'<td>'+sub_data[i].flow_out_bigcar+'</td>'
+	// 					+'<td>'+sub_data[i].flow_out_car+'</td>'
+	// 					+'<td>'+sub_data[i].flow_out_motcar+'</td>'
+	// 					+'<td>'+sub_data[i].flow_out_average_op+'</td>'
+	// 			if(i==0){
+	// 				html+='<td rowspan= '+rows+' style="border-bottom-right-radius: 10px;border-left:solid #898989 1px;">'+msg.flow_out_total+'</td>';
+	// 			}
+	// 			html+='</tr>';
+
+	// 		}
+	// 		html+='</table>';
+	// 	$("#sub_"+id).html(html);
+	// }
+
+	//判斷方位
+	function directionVal(id,connected_sub_intersection_id){
+		if((parseInt(id)%4!=0?(parseInt(id%4)):(parseInt(id%4))+4)-(parseInt(connected_sub_intersection_id%4))==1  || (parseInt(id)%4==parseInt(connected_sub_intersection_id%4) && parseInt(id)>parseInt(connected_sub_intersection_id))){
+			return 1;
+		}else if((parseInt(connected_sub_intersection_id)%4!=0?(parseInt(connected_sub_intersection_id%4)):(parseInt(connected_sub_intersection_id%4))+4)-(parseInt(id%4))==1 || (parseInt(connected_sub_intersection_id%4)==parseInt(id%4)&& parseInt(connected_sub_intersection_id)>parseInt(id))){
+			return 0;
+		}else
+			return 2;
+	}
+	function disconnect(){
+		for (const sub in this.stompClient.subscriptions) {
+			if (this.stompClient.subscriptions.hasOwnProperty(sub)) {
+				this.stompClient.unsubscribe(sub);
+			}
+		}	
+	}
+</script>
+</html>

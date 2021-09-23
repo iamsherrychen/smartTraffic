@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wistron.swpc.wismarttrafficlight.mapper.DeviceMapper">
+
+    <select id="selectByIntersectionId" resultType="Device">
+        SELECT b.id, b.category, b.x_position, b.y_position, b.longitude,
+            b.latitude, b.direction, b.rtsp_url, b.description
+        FROM intersection as a, device as b
+        WHERE a.uuid = b.intersection_uuid AND a.id = #{intersectionId}
+            AND b.is_enabled = true
+    </select>
+
+
+</mapper>

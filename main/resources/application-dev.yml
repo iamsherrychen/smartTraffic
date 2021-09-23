@@ -1,0 +1,66 @@
+spring:
+  datasource:
+    username: traffic
+    password: traffic
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://52.231.207.15:5432/traffic
+  data:
+    mongodb:
+      host: 52.231.207.15
+      port: 27017
+      database: traffic
+      username: traffic
+      password: traffic
+  redis:
+    host: 52.231.207.15
+    port: 6379
+    password: traffic
+    lettuce:
+      shutdown-timeout: 100
+      pool:
+        max-active: 8
+        max-idle: 8
+        max-wait: 100
+        min-idle: 0
+logging:
+  config: classpath:logback-dev.xml
+
+api:
+  address: https://pixord.wiadvancelabs.com
+  base_url_route_api: https://pixord.wiadvancelabs.com/osrm
+
+license:
+  encode_rule: '!#traffic@$3'
+
+ids:
+  speed_status_limit: 50
+  space_status_limit: 80
+  dayuan:
+    east_id: 108011
+    west_id: 108010
+    start_intersection_id: H33700401
+    end_intersection_id: H33701801
+  dazu:
+    zzer_f_id: 10471
+    zzer_r_id: EA05100_EA05101
+    nqr_f_id: EA14814_EA14811
+    nqr_r_id_1: E729350_E245155
+    nqr_r_id_2: E245156_EA14850
+    nqr_turn_zzer_f_id: E729350_EA04745
+    nqr_turn_zzer_r_id: EA05100_EA14811
+    start_intersection_id: H33700302-0-PC01
+    end_intersection_id: H33700301-0-PC01
+    zzer:
+      start_intersection_id: H33700303
+      end_intersection_id: H33700304
+  basic_speed: 25
+
+server:
+  port: 80
+
+traffic:
+  time_zone: GMT+8:00
+  
+#logging:
+#  level:
+#    com.wistron.swpc.wismarttrafficlight.mapper: debug

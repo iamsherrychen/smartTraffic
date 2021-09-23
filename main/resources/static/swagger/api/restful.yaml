@@ -1,0 +1,456 @@
+swagger: "2.0"
+info:
+  title: SmartTraffic Data Format for Restful API
+  description: ""
+  version: v1
+host: pixord.wiadvancelabs.com
+basePath: "/api"
+tags:
+- name: "history"
+  description: "歷史資料"
+- name: "intersections"
+  description: "路口資料"
+- name: "notification"
+  description: "推播"
+schemes:
+- "https"
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  Basic:
+    type: basic
+security:
+  - Basic: []
+paths:
+  /history/time_statistic/:
+    get:
+      summary: "接收各時間各路口的流量趨勢統計數據(歷史)"
+      description: "For 流量趨勢圖(歷史), 查詢條件以日為單位"
+      parameters:
+      - name: "date"
+        in: "query"
+        description: "欲查詢的日期"
+        required: true
+        type: "string"
+      responses:
+        '200':
+          description: "Successful operation."
+          schema:
+            $ref: '#/definitions/HistoryData'
+        '406':
+          description: "不支援請求所要求的內容類型(Accept)。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        '405':
+          description: "不支援請求的HTTP方法。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        '415':
+          description: "不支援請求所用的內容類型(Content-Type)。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        '400':
+          description: "請求發生錯誤，請檢查輸入參數。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+      tags:
+      - "history"
+      
+  /history/download/:
+    get:
+      summary: "取得原始的log檔案"
+      description: "檔案及查詢條件皆以日為單位"
+      parameters:
+      - name: "date"
+        in: "query"
+        description: "欲查詢的日期"
+        required: true
+        type: "string"
+      responses:
+        '200':
+          description: "Successful operation."
+          schema:
+            $ref: '#/definitions/OriginData'
+        '406':
+          description: "不支援請求所要求的內容類型(Accept)。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        '405':
+          description: "不支援請求的HTTP方法。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse' 
+        '415':
+          description: "不支援請求所用的內容類型(Content-Type)。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        '400':
+          description: "請求發生錯誤，請檢查輸入參數。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+      tags:
+      - "history"
+  
+  /intersections/:
+    get:
+      summary: "查詢所有的路口的明細"
+      responses:
+        '200':
+          description: "Successful operation."
+          schema:
+            $ref: '#/definitions/AllIntersection'
+        '406':
+          description: "不支援請求所要求的內容類型(Accept)。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        '405':
+          description: "不支援請求的HTTP方法。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        '415':
+          description: "不支援請求所用的內容類型(Content-Type)。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        '400':
+          description: "請求發生錯誤，請檢查輸入參數。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+      tags:
+      - "intersections"
+  
+  /intersections/{id}/:
+    get:
+      summary: "查詢特定路口的明細"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "路口ID"
+        required: true
+        type: "string"
+      responses:
+        '200':
+          description: "Successful operation."
+          schema:
+            $ref: '#/definitions/SingleIntersection'
+        '406':
+          description: "不支援請求所要求的內容類型(Accept)。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        '405':
+          description: "不支援請求的HTTP方法。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        '415':
+          description: "不支援請求所用的內容類型(Content-Type)。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        '400':
+          description: "請求發生錯誤，請檢查輸入參數。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+      tags:
+      - "intersections"
+      
+  /intersections/{id}/devices/:
+    get:
+      summary: "查詢特定路口的設備明細"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "路口ID"
+        required: true
+        type: "string"
+      responses:
+        '200':
+          description: "Successful operation."
+          schema:
+            $ref: '#/definitions/IntersectionsDevices'
+        '406':
+          description: "不支援請求所要求的內容類型(Accept)。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        '405':
+          description: "不支援請求的HTTP方法。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        '415':
+          description: "不支援請求所用的內容類型(Content-Type)。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        '400':
+          description: "請求發生錯誤，請檢查輸入參數。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+      tags:
+      - "intersections"
+      
+  /intersections/control_strategy/:
+    post:
+      summary: "設定區域中所有路口的時序狀態(一次設定全部路口時序)"
+      description: "Control Strategy: 0x05-定時 0x10-動態 0x04-路口手動. 呼叫此API時header必須帶帳號密碼，其中密碼須經sha256加密過."
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/ControlStrategy"
+      responses:
+        202:
+          description: "請求訊息已送出，處理中。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        401:
+          description: "帳戶驗證失敗或未提供帳戶驗證資訊。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        406:
+          description: "不支援請求所要求的內容類型(Accept)。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        405:
+          description: "不支援請求的HTTP方法。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        413:
+          description: "錯訊，傳送訊息內容size過大。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        415:
+          description: "不支援請求所用的內容類型(Content-Type)。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        400:
+          description: "請求發生錯誤，請檢查輸入參數。"
+          schema:
+            $ref: '#/definitions/ControlStrategyResponse'
+        #403:
+        #  description: "帳戶驗證成功，但使用者權限不足。"
+        #  schema:
+        #    $ref: '#/definitions/ControlStrategyResponse'
+      tags:
+      - "intersections"
+
+  /notification/line/:
+    post:
+      summary: "轉發Line Notify"
+      description: "呼叫此API需Token、Message並且把Line Notify(官方帳號)加入群組"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/notification"
+      responses:
+        200:
+          description: "success"
+          schema:
+            $ref: '#/definitions/notificationResponse'
+        401:
+          description: "帳戶驗證失敗或未提供帳戶驗證資訊。"
+          schema:
+            $ref: '#/definitions/notificationResponse'
+        406:
+          description: "不支援請求所要求的內容類型(Accept)。"
+          schema:
+            $ref: '#/definitions/notificationResponse'
+        405:
+          description: "不支援請求的HTTP方法。"
+          schema:
+            $ref: '#/definitions/notificationResponse'
+        413:
+          description: "錯訊，傳送訊息內容size過大。"
+          schema:
+            $ref: '#/definitions/notificationResponse'
+        415:
+          description: "不支援請求所用的內容類型(Content-Type)。"
+          schema:
+            $ref: '#/definitions/notificationResponse'
+        400:
+          description: "請求發生錯誤，請檢查輸入參數。"
+          schema:
+            $ref: '#/definitions/notificationResponse'
+
+      tags:
+      - "notification"
+
+definitions:
+  ControlStrategy:
+    required:
+      - control_strategy
+    type: object
+    properties:
+      control_strategy:
+        title: "時序狀態"
+        type: "string"
+        enum:
+          - "0x10"
+          - "0x05"
+          - "0x04"
+  
+  ControlStrategyResponse:
+    type: object
+    properties:
+      success:
+        title: "true - 成功， false - 失败"
+        type: boolean
+      timestamp:
+        type: "string"
+        format: "date-time"
+      data:
+        type: string
+        title: "成功或失敗的訊息"
+  
+  AllIntersection:
+    type: "object"
+    properties:
+      success:
+        title: "true - 数据获取成功， false - 数据获取失败"
+        type: boolean
+      timestamp:
+        type: "string"
+        format: "date-time"
+      data:
+        type: array
+        items: 
+          $ref: '#/definitions/Intersection'
+        
+  SingleIntersection:
+    type: "object"
+    properties:
+      success:
+        title: "true - 数据获取成功， false - 数据获取失败"
+        type: boolean
+      timestamp:
+        type: "string"
+        format: "date-time"
+      data:
+        $ref: '#/definitions/Intersection'
+        
+  Intersection:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      popup_position:
+        type: string
+      sub_phase_total:
+        type: integer
+      type_for_light_chart:
+        type: string
+      type_for_traffic_flow:
+        type: string
+      center_longitude:
+         type: number
+      center_latitude:
+        type: number
+        
+  IntersectionsDevices:
+    type: "object"
+    properties:
+      success:
+        title: "true - 数据获取成功， false - 数据获取失败"
+        type: boolean
+      timestamp:
+        type: "string"
+        format: "date-time"
+      data:
+        type: array
+        items: 
+          $ref: '#/definitions/Device'
+      
+  Device:
+    type: object
+    properties:
+      device_id:
+        type: string
+      category: 
+        type: string
+        enum:
+          - VD
+          - FE
+          - BL
+          - SD
+          - PC
+      x_position:
+        type: integer
+      y_position:
+        type: integer  
+      longitude:
+        type: number
+      latitude:
+        type: number
+      direction:
+        type: string
+      rtsp_url:
+        type: string
+      description:
+        type: string
+      
+  HistoryData:
+    type: "object"
+    properties:
+      success:
+        title: "true - 数据获取成功， false - 数据获取失败"
+        type: boolean
+      timestamp:
+        type: "string"
+        format: "date-time"
+      data:
+        type: array
+        items:
+          type: object
+          properties:
+            time_point:
+              type: string
+              format: date-time
+            speed_east:
+              type: integer
+            speed_west:
+              type: integer
+            statistic_data:
+              type: "array"
+              items: 
+                $ref: '#/definitions/IntersectionStatistic'
+                
+  IntersectionStatistic:
+    type: object
+    properties:
+      intersection_id: 
+        type: string
+      intersection_name: 
+        type: string
+      pcu:
+        type: integer
+
+  OriginData:
+    type: "object"
+    properties:
+      success:
+        title: "true - 数据获取成功， false - 数据获取失败"
+        type: boolean
+
+  notification:
+    required:
+      - notification
+    type: object
+    properties:
+      token:
+        title: "Line notify token"
+        type: "string"
+      message:
+        title: "message"
+        type: "string"
+      
+        
+  notificationResponse:
+    type: object
+    properties:
+      success:
+        title: "true - 成功， false - 失败"
+        type: boolean
+      timestamp:
+        type: "string"
+        format: "date-time"

@@ -1,0 +1,348 @@
+.main {
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-position: left top;
+    /* background-image: url(/img/section_b_backgrond.png); */
+    /* background-color: #ccc; */
+    width: 1920px;
+    height: 60px;
+    margin: 0px;
+}
+
+.guide {
+    /* 左下角的號誌說明 */
+    position: absolute;
+    bottom: 32px;
+    left: 32px;
+}
+
+.back_link {
+    font-family: Microsoft JhengHei;
+    font-weight: bold;
+    font-size: 23px;
+    position: absolute;
+    left: 15px;
+}
+
+.back_link a {
+    text-decoration: none;
+    color: #000;
+}
+
+.back_link span {
+    position: relative;
+    top: -7px;
+    left: -8px;
+}
+
+.chart_section {
+    position: absolute;
+    right: 25px;
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.chart_link {
+    font-family: Microsoft JhengHei;
+    /* font-weight: bold; */
+    font-size: 20px;
+    margin-left: 20px;
+    color: rgb(0, 0, 0, 0.5);
+}
+
+.chart_link a {
+    text-decoration: none;
+    color: #000;
+}
+
+.subintersection_ew {
+    width: 177px;
+    height: 80px;
+}
+
+.subintersection_sn {
+    width: 358px;
+    height: 160px;
+}
+
+/* .rotate{
+    transform: rotate(90deg);
+} */
+
+.corner_1 {
+    position: absolute;
+    left: 152px;
+    top: 40px;
+    transform: rotate(270deg);
+}
+
+.corner_3 {
+    position: absolute;
+    left: 20px;
+    top: 80px;
+    transform: rotate(90deg);
+}
+
+.corner_2 {
+    position: absolute;
+    left: 140px;
+    top: 94px;
+    transform: rotate(0deg);
+
+}
+
+.corner_6 {
+    position: absolute;
+    left: 105px;
+    top: 93px;
+    transform: rotate(0deg);
+}
+
+.corner_8 {
+    position: absolute;
+    left:65px;
+    top: 28px;
+    transform: rotate(180deg);
+}
+
+.corner_4 {
+    position: absolute;
+    left: 30px;
+    top: 28px;
+    transform: rotate(180deg);
+}
+
+.sub_intersection_arrows_1 {
+    top: 690px !important;
+    left: 1000px !important;
+    transform: rotate(0deg) !important;
+}
+
+.sub_intersection_arrows_3 {
+    top: 130px !important;
+    left: 975px !important;
+    transform: rotate(180deg) !important;
+}
+
+.sub_intersection_arrows_2 {
+    top: 585px !important;
+    left: 850px !important;
+    transform: rotate(90deg) !important;
+}
+
+.sub_intersection_arrows_6 {
+    top: 420px !important;
+    left: 850px !important;
+    transform: rotate(90deg) !important;
+}
+
+.sub_intersection_arrows_8 {
+    top: 405px !important;
+    left: 1120px !important;
+    transform: rotate(270deg) !important;
+}
+
+.sub_intersection_arrows_4 {
+    top: 235px !important;
+    left: 1120px !important;
+    transform: rotate(270deg) !important;
+}
+
+.subintersection_flowout_1 {
+    top: 743px !important;
+    left: 807px !important;
+}
+
+.subintersection_flowin_1 {
+    top: 743px !important;
+    left: 992px !important;
+}
+
+.subintersection_flowout_3 {
+    top: 0px !important;
+    left: 992px !important;
+}
+
+.subintersection_flowin_3 {
+    top: 0px !important;
+    left: 807px !important;
+}
+
+.subintersection_flowout_2 {
+    top: 417px !important;
+    left: 448px !important;
+}
+
+.subintersection_flowin_2 {
+    top: 584px !important;
+    left: 448px !important;
+}
+
+.subintersection_flowout_6 {
+    top: 78px !important;
+    left: 448px !important;
+}
+
+.subintersection_flowin_6 {
+    top: 243px !important;
+    left: 448px !important;
+}
+
+.subintersection_flowout_8 {
+    top: 584px !important;
+    left: 1168px !important;
+}
+
+.subintersection_flowin_8 {
+    top: 417px !important;
+    left: 1168px !important;
+}
+
+.subintersection_flowout_4 {
+    top: 243px !important;
+    left: 1168px !important;
+}
+
+.subintersection_flowin_4 {
+    top: 78px !important;
+    left: 1168px !important;
+}
+
+.sub_intersection_name_1 {
+    top: 756px !important;
+    left: 850px !important;
+}
+
+.sub_intersection_name_3 {
+    top: 10px !important;
+    left: 850px !important;
+}
+
+.sub_intersection_name_2 {
+    top: 635px !important;
+    left: 460px !important;
+}
+
+.sub_intersection_name_6 {
+    top: 480px !important;
+    left: 460px !important;
+}
+
+.sub_intersection_name_8 {
+    top: 285px !important;
+    left: 1300px !important;
+}
+
+.sub_intersection_name_4 {
+    top: 130px !important;
+    left: 1300px !important;
+}
+
+
+/* Belows are for chart_traffic_flow.html 轉向交通量圖 */
+#sub_1_intersection_name {
+    left: 190px;
+    top: 182px;
+}
+#sub_2_intersection_name {
+    left: 690px;
+    top: 150px;
+}
+#sub_3_intersection_name {
+    left: 30px;
+    top: 45px;
+}
+#sub_4_intersection_name {
+    left: 390px;
+    top: 55px;
+}
+#sub_6_intersection_name {
+    background-color: transparent;
+    left: 190px;
+    top: 10px;
+}
+#sub_8_intersection_name {
+    background-color: transparent;
+    left: 190px;
+    top: 190px;
+}
+
+#sub_1_flow_out>table {
+    height: 120px;
+    width: 400px;
+    padding-bottom: 16px;
+}
+
+#sub_1_flow_in>table {
+    height: 120px;
+    width: 160px;
+    float: left;
+}
+
+#sub_3_flow_out>table {
+    height: 120px;
+    width: 400px;
+}
+
+#sub_3_flow_in>table {
+    height: 120px;
+    width: 160px;
+    padding-bottom: 16px;
+    float: right;
+}
+
+#sub_4_flow_in {
+    width: 300px;
+    height: 96px;
+    top: 144px;
+    position: relative;
+}
+
+#sub_1 {
+    position: absolute;
+    left: 1440px;
+    top: 378px;
+}
+
+#sub_3 {
+    position: absolute;
+    left: 80px;
+    top: 378px;
+}
+
+#sub_2 {
+    position: absolute;
+    left: 30px;
+    top: 762px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#sub_4 {
+    position: absolute;
+    left: 655px;
+    top: 17px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.left_right td {
+    width: 80px;
+    height: 40px;
+}
+
+.top_bottom td {
+    width: 100px;
+    height: 48px;
+}
+
+.mod_2_or_0 {
+    width: 290px;
+    height: 240px;
+    padding-right: 24px;
+}
+.mod_6_or_8 {
+    width: 290px;
+    height: 240px;
+    padding-right: 24px;
+}

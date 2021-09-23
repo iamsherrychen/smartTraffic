@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>即時影像-大竹</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
+<meta http-equiv="If-Modified-Since" content="Wed, 15 Nov 1995 04:58:08 GMT" />
+<meta http-equiv="Expires" content="Wed, 15 Nov 1995 04:58:08 GMT" />
+<meta http-equiv="Last-Modified" content="Wed, 15 Nov 1995 04:58:08 GMT" />
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
+<meta name="viewport" content="width=device-width, minimum-scale=0.1">
+<link rel="stylesheet" href="./css/common.css" type="text/css" media="screen">
+<script language="javascript">
+
+var pagesat=new Array("中正東路二段","大竹南路599巷");
+var pagesa=new Array("ZhongzhengE_s2","DazhuS_ln599");
+
+var ows=20;
+var ohs=50;
+
+var selids=0;
+
+function changchimg(c)
+{ 
+	selids=c;
+	
+	var obj = document.getElementById("fframe");
+	obj.style.width = window.innerWidth-ows+ 'px';
+	obj.style.height = window.innerHeight-ohs+ 'px';
+	
+	for(var i=1;i<=4;i++)  //pages html
+	{
+	  if(i==2 || i==4)
+	  {
+	    document.getElementById("img"+i).src = "./images/6ch1.gif"; 
+	  }	  
+	  else
+	  {
+	    document.getElementById("img"+i).src = "./images/4ch1.gif"; 
+	  }
+	}
+	
+    if(c==2 || c==4)
+    {
+	  document.getElementById("img"+c).src = "./images/6ch2.gif"; 
+    }	
+    else
+    {
+	  document.getElementById("img"+c).src = "./images/4ch2.gif"; 
+    }	
+}
+
+function resize()
+{
+	var objs = document.getElementById("fframe");
+	objs.style.width = window.innerWidth-ows+ 'px';
+	objs.style.height = window.innerHeight-ohs+ 'px';
+}
+
+function MM_preloadImages() { //v3.0
+  var d=document; if(d.images){ if(!d.MM_p) d.MM_p=new Array();
+    var i,j=d.MM_p.length,a=MM_preloadImages.arguments; for(i=0; i<a.length; i++)
+    if (a[i].indexOf("#")!=0){ d.MM_p[j]=new Image; d.MM_p[j++].src=a[i]+"?_"+Math.random();}}
+}
+</script>
+</head>
+<body onLoad="resize();MM_preloadImages('./images/4ch1.gif','./images/4ch2.gif','./images/6ch1.gif','./images/6ch2.gif');" onresize="resize();">
+<table width="100%" border=0 cellpadding=0 cellspacing=0 vAlign="top">
+ <tr>
+   <td>
+	 <table width="100%" border=1 cellpadding=0 cellspacing=0 vAlign="top">
+	  <tr>
+	    <script language="javascript">
+		var p=0;
+		for(var j=1;j<=pagesa.length;j++)
+	    {
+		  var roadnm=pagesa[j-1];
+		  
+		  p+=1;
+		  
+		  document.write('<td width="250" height="30">&nbsp;&nbsp;'+pagesat[j-1]+'&nbsp;&nbsp;');
+		  document.write('<a id="aid'+p+'" href="./pages/Dazhu-'+roadnm+'-4ch.html" target="fframe">');		  
+		  document.write('<img src="./images/4ch1.gif" id="img'+p+'" name="img'+p+'" width="20" height="20" border="0" alt="4 CH"  title="4 CH" onclick="changchimg('+p+')" /></a>&nbsp;&nbsp;');
+		  
+		  p+=1;		  
+		  
+		  document.write('<a id="aid'+p+'" href="./pages/Dazhu-'+roadnm+'-6ch.html" target="fframe">');		  
+		  document.write('<img src="./images/6ch1.gif" id="img'+p+'" name="img'+p+'" width="20" height="20" border="0" alt="6 CH"  title="6 CH" onclick="changchimg('+p+')" /></a>&nbsp;&nbsp;');
+		}
+		</script>
+		<td>&nbsp;</td>
+	  </tr>
+	  <tr>
+	    <td colspan="6" width="100%">
+		  <iframe width="100%" id="fframe" name="fframe"  frameborder="0" scrolling="no">
+          <frame width="100%" id="fframe" name="fframe" frameborder="0" scrolling="no"  >
+          </iframe>
+		</td>
+	  </tr>
+	</table>
+	</td>
+  </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" X-Content-Type-Options="nosniff" content="text/html; charset=utf-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>區域交通狀態圖</title>
+    <link href="css/common.css" rel="stylesheet">
+    <link href="css/fonts.css" rel="stylesheet">
+    <link href="css/jquery-ui.css" rel="stylesheet">
+    <link href="css/leaflet.css" rel="stylesheet">
+    <link href="css/leaflet.cusotm.css" rel="stylesheet">
+    <link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet">
+    <link href="css/boostrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap-glyphicons.css" rel="stylesheet">
+
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <script src="js/moment.js"></script>
+    <script src="js/bootstrap-datetimepicker.min.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/jquery-ui-1.js"></script>
+    <script src="js/env.js"></script>
+    <script src="js/stomp.min.js"></script>
+    <script src="js/leaflet.js"></script>
+    <script src="js/math.min.js"></script>
+    <script src="js/sha256.min.js"></script>
+
+    <style>
+        .link-top {
+            width: 50%;
+            height: 1px;
+            border-top: solid #ACC0D8 1px;
+        }
+
+        .timing_select {
+            position: absolute;
+            width: 89px;
+            right: -81px;
+            padding: 0 2%;
+            text-align: center;
+            text-align-last: center;
+            background: #c5e4e6;
+            opacity: 1;
+            color: black;
+            font-size: 20px;
+            font-family: 微軟正黑體;
+            font-weight: bold;
+            border-width: 0px;
+            outline: none;
+        }
+
+        .selectcss option {
+            background: #ffffff;
+            color: #000000;
+            font-family: 微軟正黑體;
+            text-align-last: center;
+            left: 33%;
+            position: relative;
+            font-weight: bold;
+        }
+
+        .left_side_popup {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 9999;
+            text-align: center;
+            white-space: nowrap;
+            cursor: pointer;
+            background: rgba(0, 0, 0, .65);
+            display: none;
+        }
+
+        .left_side_popup .side_content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: white;
+            width: 0;
+            height: 968px;
+        }
+
+        img {
+            float: left;
+        }
+
+        .ui-dialog-title {
+            font-family: 微軟正黑體;
+        }
+
+        .ui-widget-header {
+            border: 0px;
+            background-color: #ffffff;
+            font-size: 20px;
+            color: #707070;
+            font-weight: unset;
+        }
+
+        .ui-dialog .ui-dialog-content {
+            overflow: unset;
+        }
+
+        #mapid {
+            height: 1020px;
+            z-index: 1;
+            /* position: absolute; */
+        }
+
+        .leaflet-popup-content-wrapper,
+        .leaflet-popup-tip {
+            background-color: #696969;
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 18px;
+            font-family: 微軟正黑體;
+        }
+
+        .leaflet-popup-content {
+            height: 184px;
+        }
+
+        .leaflet-popup-rotate-height .leaflet-popup-content {
+            height: 265px;
+        }
+
+        .leaflet-popup-rotate-height.bottom .leaflet-popup-tip-container {
+            top: -285px !important;
+        }
+
+        .leaflet-popup-rotate-height.top .leaflet-popup-tip-container {
+            top: 265px !important;
+        }
+
+        .popup_bottom_rotate_height {
+            top: 190px !important;
+        }
+
+        .time_dialog>p>button {
+            background-color: #545351;
+        }
+
+        .choose {
+            background-color: #545351;
+            color: #FFFFFF;
+            visibility: hidden;
+            z-index: 99;
+            position: fixed;
+            top: 65px;
+            right: 10px;
+            width: 237px;
+            height: 160px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-family: 微軟正黑體;
+        }
+
+        .choose .radio {
+            position: relative;
+            display: inline-block;
+            font-weight: 400;
+            color: #FFFFFF;
+            padding-left: 25px;
+            cursor: pointer;
+        }
+
+        .choose .radio input {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .choose .radio i {
+            display: block;
+            position: absolute;
+            top: 3px;
+            left: 0;
+            width: 15px;
+            height: 15px;
+            outline: 0;
+            border: 1px solid #e4e4e4;
+            background: #ffffff;
+            border-radius: 50%;
+            transition: border-color .3s;
+            -webkit-transition: border-color .3s;
+        }
+
+        .choose .radio input+i:after {
+            position: absolute;
+            content: '';
+            top: 3px;
+            left: 3px;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background-color: #4FB3B5;
+            opacity: 0;
+            transition: opacity .1s;
+            -webkit-transition: opacity .1s;
+        }
+
+        .choose .radio input:checked+i:after {
+            opacity: 1;
+        }
+
+        .alert {
+            padding: 10px;
+            background-color: #f44336;
+            color: #318386;
+            opacity: 1;
+            transition: opacity 0.6s;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-family: 微軟正黑體;
+        }
+
+        .alert.success {
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+        }
+
+        .alert.info {
+            background-color: #fffbe6;
+            border: 1px solid #ffe58f;
+        }
+
+        .alert.warning {
+            background-color: #fff2f0;
+            border: 1px solid #ffccc7;
+        }
+
+        .closebtn {
+            margin-left: 15px;
+            color: #000000;
+            font-weight: bold;
+            float: right;
+            font-size: 22px;
+            line-height: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .closebtn:hover {
+            color: black;
+        }
+
+        .table {
+            position: fixed;
+            bottom: 48px;
+            padding: 10px;
+            height: 198px;
+            background: url(/img/box_black_number.png);
+            color: white;
+            background-repeat: no-repeat;
+            background-position-x: center;
+            z-index: 99;
+            width: 745px;
+            left: 561px;
+        }
+
+        .average_speed_road_direction_forward {
+            font-size: 18px;
+            color: #ADADAD;
+            font-family: 微軟正黑體;
+            position: absolute;
+            display: inline;
+            top: 57px;
+            left: 73px;
+        }
+
+        .average_speed_road_direction_reverse {
+            font-size: 18px;
+            color: #ADADAD;
+            font-family: 微軟正黑體;
+            position: absolute;
+            display: inline;
+            top: 57px;
+            left: 228px;
+        }
+
+        .average_speed_east {
+            font-size: 40px;
+            color: white;
+            font-family: Roboto;
+            position: absolute;
+            display: inline;
+            top: 85px;
+            left: 59px;
+            text-align: right;
+        }
+
+        .travel_time_road_direction_forward {
+            font-size: 18px;
+            color: #ADADAD;
+            font-family: 微軟正黑體;
+            position: absolute;
+            display: inline;
+            top: 57px;
+            left: 423px;
+        }
+
+        .travel_time_road_direction_reverse {
+            font-size: 18px;
+            color: #ADADAD;
+            font-family: 微軟正黑體;
+            position: absolute;
+            display: inline;
+            top: 57px;
+            left: 566px;
+        }
+
+        .average_speed_west {
+            font-size: 40px;
+            color: white;
+            font-family: Roboto;
+            position: absolute;
+            display: inline;
+            top: 85px;
+            left: 211px;
+        }
+
+        .travel_time_east {
+            font-size: 40px;
+            color: white;
+            font-family: Roboto;
+            position: absolute;
+            display: inline;
+            top: 85px;
+            left: 409px;
+            text-align: right;
+        }
+
+        .travel_time_west {
+            font-size: 40px;
+            color: white;
+            font-family: Roboto;
+            position: absolute;
+            display: inline;
+            top: 85px;
+            left: 553px;
+            text-align: right;
+        }
+
+        .update_time_speed_state {
+            font-size: 14px;
+            color: white;
+            font-family: Roboto;
+            position: absolute;
+            display: inline;
+            top: 149px;
+            left: 480px;
+            text-align: right;
+            opacity: 0.8;
+        }
+
+        .bottom-image {
+            bottom: 32px;
+            left: 32px;
+            position: fixed;
+            z-index: 99;
+        }
+
+        .leaflet-popup-content {
+            margin: 0px !important;
+        }
+
+        .leaflet-container a {
+            /* color: #FFFFFF !important; */
+        }
+
+        .corner_1 {
+            position: absolute;
+            left: 152px;
+            top: 69px;
+            transform: rotate(270deg);
+        }
+
+        /* 
+        .subphases_update_time {
+            position: absolute;
+            background: #5C5C5C;
+            font-size: 12px;
+            left: 84px;
+            top: 8px;
+            width: 118px;
+            text-align: center;
+            border-radius: 10px;
+            opacity: 0.6;
+        } */
+
+        .popup_bottom {
+            position: relative;
+            top: 112px;
+            font-size: 14px;
+            padding-left: 13px;
+            width: 140px;
+            border-color: #FFFFFF;
+            border-right-style: solid;
+        }
+
+        .effect_time {
+            font-size: 15px;
+            position: fixed;
+            top: 145px;
+            left: 143px;
+            width: 58px;
+            text-align: center;
+        }
+
+        .effect_time_rotate_top {
+            top: 220px !important;
+        }
+
+        .corner1_1 {
+            position: absolute;
+            left: 133px;
+            top: 43px;
+            transform: rotate(270deg);
+        }
+
+        .corner1_2 {
+            position: absolute;
+            left: 109px;
+            top: 106px;
+        }
+
+        .corner1_3 {
+            position: absolute;
+            left: 24px;
+            top: 88px;
+            transform: rotate(90deg);
+        }
+
+        .corner1_4 {
+            position: absolute;
+            left: 43px;
+            top: 26px;
+            transform: rotate(180deg);
+        }
+
+        .corner2_1 {
+            position: absolute;
+            left: 133px;
+            top: 43px;
+            transform: rotate(270deg);
+        }
+
+        .corner2_3 {
+            position: absolute;
+            left: 20px;
+            top: 92px;
+            transform: rotate(90deg);
+        }
+
+        .corner2_4 {
+            position: absolute;
+            left: 43px;
+            top: 28px;
+            transform: rotate(180deg);
+        }
+
+        .corner8_1 {
+            position: absolute;
+            left: 152px;
+            top: 43px;
+            transform: rotate(270deg);
+        }
+
+        .corner8_2 {
+            left: 143px;
+            top: 104px;
+            position: absolute;
+        }
+
+        .corner8_3 {
+            position: absolute;
+            left: 0px;
+            top: 90px;
+            transform: rotate(90deg);
+        }
+
+        .corner8_4 {
+            position: absolute;
+            left: 11px;
+            top: 31px;
+            transform: rotate(180deg);
+        }
+
+        .corner8_6 {
+            position: absolute;
+            left: 52px;
+            top: 104px;
+        }
+
+        .corner8_8 {
+            position: absolute;
+            left: 102px;
+            top: 31px;
+            transform: rotate(180deg);
+        }
+
+        .corner9_1 {
+            position: absolute;
+            left: 152px;
+            top: 43px;
+            transform: rotate(270deg);
+        }
+
+        .corner9_2 {
+            left: 148px;
+            top: 104px;
+            position: absolute;
+        }
+
+        .corner9_3 {
+            position: absolute;
+            left: 0px;
+            top: 90px;
+            transform: rotate(90deg);
+        }
+
+        .corner9_4 {
+            position: absolute;
+            left: 9px;
+            top: 31px;
+            transform: rotate(180deg);
+        }
+
+        .corner9_6 {
+            position: absolute;
+            left: 95px;
+            top: 104px;
+        }
+
+        .corner9_8 {
+            position: absolute;
+            left: 60px;
+            top: 31px;
+            transform: rotate(180deg);
+        }
+
+
+        .clock {
+            position: absolute;
+            top: 3px;
+            left: 2px;
+        }
+
+        .icon {
+            margin-right: 8px;
+            /* margin-left: 4px; */
+            float: none !important;
+        }
+
+        .styled-select select {
+            background: transparent;
+            width: 268px;
+            padding: 5px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            height: 34px;
+            -webkit-appearance: none;
+        }
+
+        .styled-select {
+            width: 100px;
+            height: 34px;
+            overflow: hidden;
+            background: url(new_arrow.png) no-repeat right #ddd;
+        }
+
+        .select_project_style {
+            background-color: transparent;
+            color: #707070;
+            font-size: 20px;
+            border: none;
+            cursor: pointer;
+            right: 280px;
+            position: absolute;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="time_left"></div>
+    <div id="left_side_popup" class="left_side_popup">
+        <div id="side_content" class="side_content">
+            <!-- Warning: iframe src="#" will cause twice websocket connection, do not use it. -->
+            <iframe src="blank.html" width="1467px" height="968px" frameborder="0" scrolling="no"></iframe>
+        </div>
+    </div>
+    <div class="headerLeft">
+        <div style="width: 200px;position: relative;margin:20px;line-height: 25px;" id="opener">
+            <p style="font-family: 微軟正黑體;padding: 10px;font-size: 20px;cursor: pointer;"><img
+                    style="margin-right: 15px;" src="../../img/pic_download.svg">原始資料下載</p>
+        </div>
+        <div style="width: 200px;position: relative;line-height: 25px;" id="traffic_trends_chart">
+            <p style="font-family: 微軟正黑體;padding: 10px;font-size: 20px;cursor: pointer;"><img
+                    style="margin-right: 15px;" src="../../img/pic_search.svg">流量趨勢圖查詢</p>
+        </div>
+        <div id="intersection_name_html" class="tab" style="padding: 33px">中正東路-民安路</div>
+        <!-- choose project -->
+        <!-- <div class="select_project_style" style="right: 280px; position: absolute; font-size: 20px;"> -->
+        <select id="project_name_html" class="select_project_style" name=" project" type="radio"
+            onclick="centerFilter(value);">
+            <option value="dayuan" selected>大園案</option>
+            <option value="daju">大竹案</option>
+        </select>
+        <!-- <div style="right: 300px; position: absolute; display: inline;font-size: 16px"></div>
+            <input type="radio" id="yuan" name="project" onclick="centerFilter(id);" value="yuan">
+            <label for="yuan">大園案</label>
+
+            <input type="radio" id="chu" name="project" onclick="centerFilter(id);" value="chu">
+            <label for="chu">大竹案</label> -->
+        <!-- </div> -->
+        <div style="right: 148px; position: absolute; display: inline;">
+            <a id="videoLink"
+                style="font-family: 微軟正黑體;padding: 10px;font-size: 20px;cursor: pointer;color:#333333 !important;text-decoration:none;">
+                <img style="width: 24.39px;height: 24.39px;" src="../../img/camera_icon.svg">即時影像
+            </a>
+        </div>
+        <div id="setup_control_strategy" style="top:8px;">
+            <p style="font-family: 微軟正黑體;padding: 10px;font-size: 20px;cursor: pointer;"><img
+                    style="margin-right: 15px;" href="../Dayuan/LiveView-Dayuan.html"
+                    src="../../img/setting_icon.svg">時序設定</p>
+        </div>
+    </div>
+    <div id="mapid"></div>
+    <img src="/img/compass_b.svg" class="compass" alt="">
+    <img src="/img/pic_mark_two.png" class="bottom-image" alt="">
+    <div class="table">
+        <div class="average_speed_road_direction_forward" id="average_speed_road_direction_forward"></div>
+        <div class="average_speed_road_direction_reverse" id="average_speed_road_direction_reverse"></div>
+        <div class="average_speed_east" id="average_speed_east"></div>
+        <div class="average_speed_west" id="average_speed_west"></div>
+        <div class="travel_time_road_direction_forward" id="travel_time_road_direction_forward"></div>
+        <div class="travel_time_road_direction_reverse" id="travel_time_road_direction_reverse"></div>
+        <div class="travel_time_east" id="travel_time_east"></div>
+        <div class="travel_time_west" id="travel_time_west"></div>
+        <div class="update_time_speed_state" id="update_time"></div>
+    </div>
+    <!-- 下載原始資料 -->
+    <div id="dialog" title='原始資料下載' style="color:#707070;font-size: 16px;font-family: 微軟正黑體;">
+        <div style="margin: 10px;color: #707070;">日期</div>
+        <div>
+            <div class='input-group date' id='datetimepicker1' style="margin: 10px;">
+                <input type='text' class="form-control" id="datetimepickerdate" />
+                <span class="input-group-addon">
+                    <span>
+                        <!-- class="glyphicon glyphicon-calendar" -->
+                        <img src="../img/icon_day.png" />
+                    </span>
+                </span>
+            </div>
+            <div></div>
+        </div>
+        <button
+            style="width: 100px;height: 40px;background-color: #4FB3B5;border-radius: 5px;color: #FFFFFF;border: 0px;font-family: 微軟正黑體;margin: 42px 10px;float: left;"
+            onclick="download_float();">流量下載</button>
+        <button
+            style="width: 100px;height: 40px;background-color: #4FB3B5;border-radius: 5px;color: #FFFFFF;border: 0px;font-family: 微軟正黑體;margin: 42px 10px;float: right;"
+            onclick="download_time();">時制下載</button>
+    </div>
+    <!-- 登入-->
+    <div id="account_dialog" title='登入' style="color:#707070;font-size: 16px;font-family: 微軟正黑體;padding: 20px;">
+        <!-- 帳號: <input type="text" id="user_id" name="user_id"><br><br> 
+        密碼: <input type="password" id="user_pw" name="user_pw"><br><br> -->
+        <!-- 您設定的時序狀態為: <input type="text" id="control_strategy" name="control_strategy"
+            style="width: 90px;border: 0px solid;" readonly>
+        <button
+            style="width: 100px;height: 40px;background-color: #4FB3B5;border-radius: 5px;color: #FFFFFF;border: 0px;font-family: 微軟正黑體;margin: 30px 5px;float: right;"
+            id="submit_control_strategy_daju">確定(大竹)</button>
+
+        <button
+            style="width: 100px;height: 40px;background-color: #4FB3B5;border-radius: 5px;color: #FFFFFF;border: 0px;font-family: 微軟正黑體;margin: 30px 5px;float: right;"
+            id="submit_control_strategy_dayuan">確定(大園)</button> -->
+    </div>
+
+    <!-- 時序設定框 -->
+    <div id="choose_time_setting" class="choose" style="padding: 26px 26px;">
+        <p>時序設定</p>
+        <div><label class="radio" style="padding-right: 55px;">固定<input type="radio" name="radio"
+                    value="0x05"><i></i></label>
+            <label class="radio">動態<input type="radio" value="0x10" name="radio"><i></i></label>
+        </div>
+        <!-- <button style="background-color: #545351;color: #FFFFFF;border: 0px;margin: 15px -10px;float: left;" id="submit_control_strategy_dayuan" onclick="submitdayuan();">確定(大園)</button>
+        <button style="background-color: #545351;color: #FFFFFF;border: 0px;margin: 15px -10px;float: right;" id="submit_control_strategy_daju" onclick="submitdaju();">確定(大竹)</button> -->
+        <button id="submit_control_strategy"
+            style="position: absolute; background-color: #545351;color: #FFFFFF;border: 0px;margin: 15px 44px;float: left;"
+            onclick="submit();">確定</button>
+    </div>
+    <div style="position: absolute;top: 90px;right: 10px;z-index: 99;" id="alert"></div>
+    <div style="position: absolute;top: 90px;right: 10px;z-index: 99;" id="login_fail"></div>
+</body>
+<script>
+    var base_url_route_api = env.getOsrmUrl();
+    var base_url_openstreetmap_api = "https://api.openstreetmap.org";
+    var route_path = {};
+    var color = {
+        "red": "#FB563D",
+        "green": "#5BD99A"
+    }
+    var time_setting_name = {
+        "0x05": "固定",
+        "0x10": "動態",
+        "0x04": "路口手動",
+        "0xBF": "閃燈"
+    }
+    var intersection_name = {};
+    $("#project_name_html").val(getCookie("center"))
+    $("#intersection_name_html").html(getCookie("intersection_name"))
+    var intersection_id_array = new Array();
+    var type = new Array();
+    var stompClient = null;
+    var map;
+    var setting = false;
+    var check;
+    var myIcon = L.icon({
+        iconUrl: '/img/icon_marker.png',
+        iconSize: [80, 80],
+        iconAnchor: [50, 20],
+        popupAnchor: [-10, 28]
+
+    });
+    var cache_intersections_info;
+    var speed_line_group = {};
+    var count = [];
+    var loading = false;
+    var popup = new Array();
+    var project_name_array = {
+        dayuan: ["H33701801", "H33701501", "H33700401", "H33700402", "H33701502"],
+        daju: ["H33700301-0-PC01", "H33700302-0-PC01"]
+    }
+    var current_project_name_time_zone;
+    var center = getCookie("center");
+    var role = null;
+
+    var center_lat_lon = {
+        dayuan: {
+            center_latitude: 25.0602,
+            center_longitude: 121.2079
+        },
+        daju: {
+            center_latitude: 25.0271,
+            center_longitude: 121.2290
+        }
+    }
+    //申明一個全域性變數存放間隔函式
+    var setIntervalFun = null;
+    var daju_flag = true; //紀錄daju project的首頁資訊要顯示主幹道還是支道, true：主幹道、false：支道
+    var table_msg = null;
+
+    $(function () {
+        if (sessionStorage.getItem('token') === null) {
+            //解析token
+            // var searchURL = window.location.search.replace('?token=', '');
+            const searchURL = window.location.search;
+            const urlParams = new URLSearchParams(searchURL);
+            const token = urlParams.get('token');
+
+            var aj = $.ajax({
+            url: '/api/authenticate',
+            type: 'get',
+            data: {
+                token: token
+            },
+            dataType: "json",
+            success: function(resp){
+                var response = resp.data;
+                role = response.role;
+                sessionStorage.setItem('token',token);
+                console.log(role);
+                sessionStorage.setItem('role',role);
+                if((role !== "Admin") && (role !=="TrafficManager") && (role !=="ProjectAdmin") && (role !=="UnitManager") && (role !=="ItUser")&& (role !=="ProjectUser")){
+                    $("#setup_control_strategy").remove();
+                }
+                location.href = 'index.html';
+            },
+            error: function(resp){
+                alert('拒絕存取');
+                console.log(resp.status);
+
+// 1
+                var ajax =$.ajax({
+                    url: '/api/redirect',
+                    type: 'get',
+                    async: true,
+                    cache: false,
+                    contentType: "application/json",
+                    dataType: "json",
+                    success: function (response) {
+                        location.href = response.data;
+                    },
+                    error: function (response) {
+                    }
+                });
+// 2
+            },
+            complete: function(){console.log("authenticate complete");}
+            });
+        }
+        //1.5秒後再click project selector, 並檢查角色
+        setTimeout(function () {
+            role = sessionStorage.getItem('role');
+            if ((role !== "Admin") && (role !== "TrafficManager") && (role !== "ProjectAdmin") && (role !== "UnitManager") && (role !== "ItUser") && (role !== "ProjectUser")) {
+                $("#setup_control_strategy").remove();
+            }
+            document.getElementById('project_name_html').click();
+        }, 100);
+
+        if (!!!center) {
+            document.cookie = "center=dayuan";
+            center = "dayuan";
+        }
+
+        // Load leftlet map
+        map = L.map('mapid', {
+            center: [center_lat_lon[center].center_latitude, center_lat_lon[center].center_longitude],
+            zoom: 18,
+            closePopupOnClick: false //點擊其他地方，popup不消失        
+        });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Get intersections detail from RESTful API and cache it.
+        getIntersectionsInfo();
+
+        // History row data file downloading dialog
+        $("#dialog").dialog({
+            height: 295,
+            width: 384,
+            autoOpen: false,
+            modal: true,
+            setCanceledOnTouchOutside: true,
+            show: {
+                effect: "fold",
+                duration: 1000
+            },
+            hide: {
+                effect: "fold",
+                duration: 1000
+            }
+        });
+
+        // Login account dialog
+        $("#account_dialog").dialog({
+            height: 200,
+            width: 384,
+            autoOpen: false,
+            modal: true,
+            setCanceledOnTouchOutside: true,
+            show: {
+                effect: "fold",
+                duration: 1000
+            },
+            hide: {
+                effect: "fold",
+                duration: 1000
+            }
+        });
+
+        // Download dialog
+        $("#opener").on("click", function () {
+            $("#dialog").dialog("open");
+        });
+
+        // Query traffic trends chart popup.
+        $("#traffic_trends_chart").click(function () {
+            $("#side_content iframe").attr('src', "chart_traffic_trends.html");
+            $("#left_side_popup").show();
+            $("#side_content").stop().animate({
+                width: "1467px"
+            });
+        });
+
+        // Box for setting up the control strategy.
+        // $("#setup_control_strategy").click(function () { 
+        //     event.stopPropagation();//阻止事件冒泡
+        //     if (!setting) {
+        //         $(".choose").css("visibility", "visible");
+        //         if(center === "dayuan"){
+        //             $("#submit_control_strategy").text("確定(大園)");
+        //         }else if(center === "daju"){
+        //             $("#submit_control_strategy").text("確定(大竹)");
+        //         }
+        //         setting = true;
+        //     } 
+        //     else {
+        //         $(".choose").css("visibility", "hidden");
+        //         setting = false;
+        //     }
+        // });
+
+        // Animation for the left side popup(slide) window.
+        $("#left_side_popup").click(function () {
+            $("#side_content").stop().animate({
+                width: "0"
+            }, function () {
+                $("#left_side_popup").hide();
+            });
+        });
+        $("#submit_control_strategy").click(function () {
+            if (center === "dayuan") {
+                submit_control_strategy_dayuan();
+            } else if (center === "daju") {
+                submit_control_strategy_daju();
+            }
+        });
+        // To setup the default of datetime picker.
+        var myDate = new Date();
+        myDate.setFullYear(myDate.getFullYear() - 2);
+        $('#datetimepicker1').datetimepicker({
+            defaultDate: new Date(),
+            minDate: myDate,
+            maxDate: new Date(),
+            format: 'YYYY-MM-DD'
+        });
+    });
+
+    $("#videoLink").click(function () {
+        var url = env.getVideoUrl(center);
+        window.open(url, "_blank");
+    });
+
+    //點擊首頁各個區域，"時序設定框"的反應
+    $(document).mouseup(function (e) {
+        var _con = $('.choose');//設置目標區域
+        var _con2 = $('#setup_control_strategy');
+        //點擊"時序設定框"和"時序設定按鈕"以外的區域
+        if ((!_con.is(e.target) && _con.has(e.target).length === 0) && (!_con2.is(e.target) && _con2.has(e.target).length === 0)) { // Mark 1
+            $(".choose").css("visibility", "hidden");
+            setting = false;
+        }
+        //點擊"時序設定按鈕"
+        else if (!(!_con2.is(e.target) && _con2.has(e.target).length === 0)) {
+            if (!setting) {
+                $(".choose").css("visibility", "visible");
+                if (center === "dayuan") {
+                    $("#submit_control_strategy").text("確定(大園)");
+                } else if (center === "daju") {
+                    $("#submit_control_strategy").text("確定(大竹)");
+                }
+                setting = true;
+            }
+            else {
+                $(".choose").css("visibility", "hidden");
+                setting = false;
+            }
+        }
+    });
+
+    // History row data file downloading:float
+    function download_float() {
+        redirect('/api/history/download/flow?date=' + $("#datetimepickerdate").val())
+        $("#dialog").dialog("close");
+    }
+
+    // History row data file downloading:time
+    function download_time() {
+        redirect('/api/history/download/timeslot_status?date=' + $("#datetimepickerdate").val())
+        $("#dialog").dialog("close");
+    }
+
+
+    //change center(yuan or chu)
+    function centerFilter(id) {
+        if (id == "dayuan") {
+            center_latitude = 25.0602, center_longitude = 121.2079;
+            map.setView([center_latitude, center_longitude], 18);
+            // intersection_name_html = "中正東路-民安路"
+            $("#intersection_name_html").html("中正東路-民安路");
+            center = "dayuan";
+            project_name_html = "大園案";
+            clearInterval(setIntervalFun);
+        } else {
+            center_latitude = 25.0271, center_longitude = 121.2290
+            map.setView([center_latitude, center_longitude], 18)
+            // intersection_name_html = "台31線-中正東路"
+            $("#intersection_name_html").html("台31線-中正東路")
+            center = "daju";
+            project_name_html = "大竹案";
+            // 每10秒執行changeTable()
+            clearInterval(setIntervalFun);
+            setIntervalFun = setInterval(function () {
+                changeTable(table_msg);
+                daju_flag = !daju_flag;
+            }, 10000);
+        }
+        document.cookie = "center=" + center;
+        document.cookie = "project_name=" + project_name_html;
+        connect();
+    }
+    function submit_control_strategy_daju() {
+        current_project_name_time_zone = "daju"
+        // $("#choose_time_setting").dialog("close");
+        var request_body = {};
+        request_body["control_strategy"] = $('input[name="radio"]:checked').val();
+        //id, password直接賦值
+        // var user_id = $("#user_id").val('admin');
+        // var user_pw = $("#user_pw").val('admin');
+        // var user_id = 'admin';
+        // var user_pw = 'admin';
+        $.ajax({
+            url: '/api/intersections/control_strategy/daju',
+            type: 'post',
+            async: true,
+            cache: false,
+            data: JSON.stringify(request_body),
+            contentType: "application/json",
+            dataType: "json",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("Authorization", sessionStorage.getItem('token'));
+            },
+            success: function (response) {
+                var message = response.data;
+                // append alert message to user
+                appendalert("daju");
+                loading = true;
+                count = [];
+                $(".info").show();
+                $("input[name='radio']").attr("checked", false);
+                setTimeout(function () {
+                    console.log(count, "=======");
+                    for (var i in count) {
+                        intersection_id_array.splice(intersection_id_array.indexOf(count[i]), 1);
+                    }
+                    // alert(intersection_id_array);
+                    for (var i in intersection_id_array) {
+                        // alert("#corner_info_" + intersection_id_array[i]);
+                        $("#corner_info_" + intersection_id_array[i]).hide();
+                        $("#corner_warning_" + intersection_id_array[i]).show();
+                    }
+                    loading = false;
+                }, 10000);
+            },
+            error: function (response) {
+                var message = response.responseJSON.data;
+                $("#login_fail").html('<div class="alert warning"><span class="closebtn">&times;</span>' + message + '</div>');
+                closebtn();
+            }
+        });
+        // $("#user_id").val('');
+        // $("#user_pw").val('');
+    }
+
+    function submit_control_strategy_dayuan() {
+
+        current_project_name_time_zone = "dayuan"
+        // $("#choose_time_setting").dialog("close");
+        var request_body = {};
+        request_body["control_strategy"] = $('input[type="radio"]:checked').val();
+        //id, password直接賦值
+        // var user_id = $("#user_id").val('admin');
+        // var user_pw = $("#user_pw").val('admin');
+        // var user_id = 'admin';
+        // var user_pw = 'admin';
+        $.ajax({
+            url: '/api/intersections/control_strategy/dayuan',
+            type: 'post',
+            async: true,
+            cache: false,
+            data: JSON.stringify(request_body),
+            contentType: "application/json",
+            dataType: "json",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader("Authorization", sessionStorage.getItem('token'));
+            },
+            success: function (response) {
+                console.log("success control_strategy/dayuan");
+                var message = response.data;
+                // append alert message to user
+                appendalert("dayuan");
+                loading = true;
+                count = [];
+                $(".info").show();
+                $("input[name='radio']").attr("checked", false);
+                // alert(intersection_id_array);
+                setTimeout(function () {
+                    for (var i in count) {
+                        intersection_id_array.splice(intersection_id_array.indexOf(count[i]), 1);
+                    }
+                    // alert(intersection_id_array);
+                    for (var i in intersection_id_array) {
+                        $("#corner_info_" + intersection_id_array[i]).hide();
+                        $("#corner_warning_" + intersection_id_array[i]).show();
+                    }
+                    loading = false;
+                }, 10000);
+            },
+            error: function (response) {
+                // var message = response.responseJSON.data;
+                // $("#login_fail").html('<div class="alert warning"><span class="closebtn">&times;</span>' + message + '</div>');
+                closebtn();
+            }
+        });
+        // $("#user_id").val('');
+        // $("#user_pw").val('');
+    }
+
+    // Disconnect all of the websockets before unload the page.
+    window.onbeforeunload = null;
+    $(window).bind('beforeunload', function () {
+        disconnect();
+    });
+
+
+    // Bind time setting(control strategy) change event
+    $("#select_time_setting").change(function () {
+        //Mock
+        sendMsg(this.value);
+    });
+
+    //set information in cookie
+    function onClick(e) {
+        // console.log(this.options.win_url);
+        document.cookie = "intersection=" + this.options.win_url;
+        location.href = 'intersection.html';
+    }
+
+    function onClickFromPopup(val) {
+        document.cookie = "intersection=" + val;
+        location.href = 'intersection.html';
+    }
+
+    // Connect to websocket
+    function connect() {
+        stompClient = Stomp.client(env.getWsUrl());
+        stompClient.connect({}, function (frame) {
+            stompClient.subscribe('/topic/area_statistic', function (resp) {
+                // console.log(JSON.stringify(resp.body));
+                var response = JSON.parse(resp.body);
+                var msg = response.data;
+                if (response.success) {
+                    changeTable(msg);
+                    $("#update_time").html("更新時間: " + new Date(JSON.parse(resp.body).timestamp).Format('yyyy-MM-dd hh:mm:ss'));
+                } else {
+                    $("#average_speed_road_direction_forward").html("N/A");
+                    $("#average_speed_road_direction_reverse").html("N/A");
+                    $("#average_speed_east").html("N/A");
+                    $("#average_speed_west").html("N/A");
+                    $("#travel_time_road_direction_forward").html("N/A");
+                    $("#travel_time_road_direction_reverse").html("N/A");
+                    $("#travel_time_east").html("N/A");
+                    $("#travel_time_west").html("N/A");
+                    $("#update_time").html("更新時間: " + "N/A");
+                }
+            });
+
+            stompClient.subscribe('/topic/speed_from_opendata', function (resp) {
+                for (var i in JSON.parse(resp.body).data) {
+                    var data = JSON.parse(resp.body).data[i];
+                    var intersection_id = data.intersection_id;
+                    if (data.connect_to) {
+                        data.forward_route_to_connected.forEach((position, index) => {
+                            if (index == 0) {
+                                route_path[intersection_id + "_forward_route_to_connected"] = [
+                                    [position.latitude, position.longitude]
+                                ];
+                            } else {
+                                route_path[intersection_id + "_forward_route_to_connected"].push(
+                                    [position.latitude, position.longitude]
+                                );
+                            }
+                        })
+                        data.reverse_route_to_connected.forEach((position, index) => {
+                            if (index == 0) {
+                                route_path[intersection_id + "_reverse_route_to_connected"] = [
+                                    [position.latitude, position.longitude]
+                                ];
+                            } else {
+                                route_path[intersection_id + "_reverse_route_to_connected"].push(
+                                    [position.latitude, position.longitude]
+                                );
+                            }
+                        })
+
+                    }
+                    redrawSpeedLine(intersection_id, data)
+                }
+            });
+
+            // Subscribe websocket for receiving each intersection' sub_phase infomation.
+            for (var i in intersection_id_array) {
+                stompClient.subscribe('/topic/intersection/' + intersection_id_array[i] + '/sub_phases', function (resp) {
+                    var msg = JSON.parse(resp.body).data;
+                    var intersection_id = msg.intersection_id;
+                    var current_sub_phase_id = msg.current_sub_phase_id;
+                    var html = "";
+                    var data = msg.sub_phases;
+                    if (popup[intersection_id].isPopupOpen() == false) {
+                        popup[intersection_id].openPopup();
+                    }
+                    //中路口
+                    for (var i in data) {
+                        if (data[i].sub_phase_id == current_sub_phase_id) {
+                            $("#effect_" + intersection_id).html(data[i].effect_time_last + "/" + data[i].effect_time_total);
+
+                            if (data[i].sub_intersection_1_light != "N") {
+                                html += '<img class="corner' + type[intersection_id] + '_1" src="../img/pic_g_' + data[i].sub_intersection_1_light + '.png"/>';
+                            }
+                            if (data[i].sub_intersection_2_light != "N") {
+                                html += '<img class="corner' + type[intersection_id] + '_2" src="../img/pic_g_' + data[i].sub_intersection_2_light + '.png"/>';
+                            }
+                            if (data[i].sub_intersection_3_light != "N") {
+                                html += '<img class="corner' + type[intersection_id] + '_3" src="../img/pic_g_' + data[i].sub_intersection_3_light + '.png"/>';
+                            }
+                            if (data[i].sub_intersection_4_light != "N") {
+                                html += '<img class="corner' + type[intersection_id] + '_4" src="../img/pic_g_' + data[i].sub_intersection_4_light + '.png"/>';
+                            }
+                            if (data[i].sub_intersection_5_light != "N") {
+                                html += '<img class="corner' + type[intersection_id] + '_5" src="../img/pic_g_' + data[i].sub_intersection_5_light + '.png"/>';
+                            }
+                            if (data[i].sub_intersection_6_light != "N") {
+                                html += '<img class="corner' + type[intersection_id] + '_6" src="../img/pic_g_' + data[i].sub_intersection_6_light + '.png"/>';
+                            }
+                            if (data[i].sub_intersection_7_light != "N") {
+                                html += '<img class="corner' + type[intersection_id] + '_7" src="../img/pic_g_' + data[i].sub_intersection_7_light + '.png"/>';
+                            }
+                            if (data[i].sub_intersection_8_light != "N") {
+                                html += '<img class="corner' + type[intersection_id] + '_8" src="../img/pic_g_' + data[i].sub_intersection_8_light + '.png"/>';
+                            }
+                        }
+                    }
+                    if (current_sub_phase_id == "0") {
+                        $("#light_setting_" + intersection_id).html("");
+                        $("#effect_" + intersection_id).html("");
+                    } else
+                        $("#light_setting_" + intersection_id).html(html);
+
+
+                    $("#intersectionSetting_" + intersection_id).html(time_setting_name[(msg.control_strategy)]);
+                    $("#centerSetting_" + intersection_id).html(time_setting_name[(msg.control_strategy_from_center)]);
+                    $("#timestamp_" + intersection_id).html(new Date(JSON.parse(resp.body).timestamp).Format('MM-dd hh:mm:ss'));
+                    if (loading) {
+                        if (count.indexOf(intersection_id) == -1 && project_name_array[current_project_name_time_zone].includes(intersection_id)) {
+                            if (parseInt(check) == msg.control_strategy) {
+                                $("#corner_warning_" + intersection_id).hide();
+                                $("#corner_info_" + intersection_id).hide();
+                                setTimeout(function () {
+                                    $("#corner_success_" + intersection_id).show();
+                                }, 1000);
+                                setTimeout(function () {
+                                    $("#corner_success_" + intersection_id).hide();
+                                }, 4000);
+                                count.push(intersection_id)
+                                if (count.length == 5) {
+                                    loading = false;
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+        }, errorCallback)
+    }
+
+    //change table(each ten secents change Daju average_speed & travel_time table)
+    function changeTable(msg) {
+        table_msg = msg;
+        if (center === "dayuan") {
+            $("#average_speed_road_direction_forward").html("東向");
+            $("#average_speed_road_direction_reverse").html("西向");
+            $("#travel_time_road_direction_forward").html("東向");
+            $("#travel_time_road_direction_reverse").html("西向");
+            $("#average_speed_east").html(table_msg.average_car_speed_east.toFixed(1));
+            $("#average_speed_west").html(table_msg.average_car_speed_west.toFixed(1));
+            $("#travel_time_east").html(table_msg.travel_time_east);
+            $("#travel_time_west").html(table_msg.travel_time_west);
+        } else {
+            if (daju_flag) {
+                $("#average_speed_road_direction_forward").html("台31線上匣道");
+                $("#average_speed_road_direction_reverse").html("台31線下匣道");
+                $("#travel_time_road_direction_forward").html("台31線上匣道");
+                $("#travel_time_road_direction_reverse").html("台31線下匣道");
+                $("#average_speed_east").html(table_msg.average_car_speed_dazu_nqr_forward.toFixed(1));
+                $("#average_speed_west").html(table_msg.average_car_speed_dazu_nqr_reverse.toFixed(1));
+                $("#travel_time_east").html(table_msg.travel_time_dazu_nqr_forward);
+                $("#travel_time_west").html(table_msg.travel_time_dazu_nqr_reverse);
+                // daju_flag = !daju_flag;                               
+            } else {
+                $("#average_speed_road_direction_forward").html("中正東路南向");
+                $("#average_speed_road_direction_reverse").html("中正東路北向");
+                $("#travel_time_road_direction_forward").html("中正東路南向");
+                $("#travel_time_road_direction_reverse").html("中正東路北向");
+                $("#average_speed_east").html(table_msg.average_car_speed_dazu_zzer_forward.toFixed(1));
+                $("#average_speed_west").html(table_msg.average_car_speed_dazu_zzer_reverse.toFixed(1));
+                $("#travel_time_east").html(table_msg.travel_time_dazu_zzer_forward);
+                $("#travel_time_west").html(table_msg.travel_time_dazu_zzer_reverse);
+                // daju_flag = !daju_flag;
+            }
+        }
+    }
+
+    // Reconnect
+    function errorCallback() {
+        connect();
+    }
+
+    function disconnect() {
+        for (const sub in this.stompClient.subscriptions) {
+            if (this.stompClient.subscriptions.hasOwnProperty(sub)) {
+                this.stompClient.unsubscribe(sub);
+            }
+        }
+    }
+
+    function getCoordinateByIntersectionId(intersection_id) {
+        var coordinate;
+        if (!cache_intersections_info) {
+            getIntersectionsInfo();
+        }
+        cache_intersections_info.forEach((obj, index) => {
+            if (obj.id === intersection_id) {
+                coordinate = {};
+                coordinate['latitude'] = obj.center_latitude;
+                coordinate['longitude'] = obj.center_longitude;
+                return coordinate;
+            }
+        });
+        return coordinate;
+    }
+
+    // Get intersections' info from RESTful API.
+    function getIntersectionsInfo() {
+        var aj = $.ajax({
+            url: '/api/intersections/', // 跳轉到 action 
+            type: 'get',
+            cache: false,
+            dataType: 'json',
+            success: function (response) {
+                // Cache the information of intersections
+                cache_intersections_info = response.data;
+                msg = response.data;
+                for (var i in response.data) {
+                    if ((msg[i].id !== "H33700303") && (msg[i].id !== "H33700304")) {
+                        intersection_name[msg[i].id] = msg[i].name;
+                        intersection_id_array[i] = msg[i].id;
+                        type[msg[i].id] = msg[i].type_for_light_chart;
+                        lng = msg[i].center_longitude;
+                        lat = msg[i].center_latitude;
+                        var mrk = L.marker([lat, lng], {
+                            icon: myIcon,
+                            win_url: msg[i].id
+                        }).addTo(map);
+                        mrk.on('click', onClick);
+                        popup[msg[i].id] = mrk
+                            .bindPopup(
+                                `<div style="cursor: pointer;" onclick=onClickFromPopup("${msg[i].id}");>
+                                    <div style="transform: rotate(${!!msg[i].rotate ? msg[i].rotate : '0'}deg);${!!msg[i].rotate ? 'left:85%;top:0px;position:absolute;' : ''}">
+                                    <img style="position: absolute;width:204px;${!!msg[i].rotate ? 'top:-31px' : ''}" src="img/Dashboard_bg_${!!msg[i].rotate ? '8_rotate' : msg[i].type_for_light_chart}.png"/>
+                                    <div id="light_setting_${msg[i].id}"></div>
+                                    </div>
+                                    <br>
+                                    <div class="popup_bottom ${!!msg[i].rotate ? "popup_bottom_rotate_height" : ''}">
+                                    <img class="icon" src="img/center_setting.png"/>
+                                    <div style="display: contents;" id="centerSetting_${msg[i].id}"></div>
+                                    <img class="icon" style="margin-left: 8px;" src="img/intersection_setting.png"/>
+                                    <div style="display: contents;" id="intersectionSetting_${msg[i].id}"></div>
+                                    <div style="font-size:12px;opacity:0.8;">
+                                        <div style="display: contents;" id="timestamp_${msg[i].id}"></div>
+                                    </div>
+                                    </div>
+                                    <div id="effect_${msg[i].id}" class="effect_time ${!!msg[i].rotate ? "effect_time_rotate_top" : ''}"></div>
+                                </div>'`,
+                                {
+                                    autoClose: false,
+                                    closeButton: false,
+                                    minWidth: 203,
+                                    className: msg[i].popup_position + ` ${!!msg[i].rotate ? 'leaflet-popup-rotate-height' : ''}`,
+                                    autoPan: false
+                                }
+                            );
+                    }
+                }
+                connect();
+            },
+            error: function (response) {
+                // var message = response.responseJSON.data;
+                // alert(message);
+            }
+        });
+    }
+    function submit() {
+        check = $('input[type="radio"]:checked').val();
+        if (check == null) {
+            return alert("請選擇時序設定!");
+        } else {
+            $("#control_strategy").val(time_setting_name[check]);
+            $(".choose").css("visibility", "hidden");
+            //log in dialog
+            // $("#account_dialog").dialog("open");
+
+        }
+    }
+    // Submit control strategy status
+    function submitdayuan() {
+        // append alert message to user
+        // appendalert("daju");
+
+        check = $('input[type="radio"]:checked').val();
+        if (check == null) {
+            return alert("請選擇時序設定!");
+        } else {
+            $("#control_strategy").val(time_setting_name[check]);
+            $(".choose").css("visibility", "hidden");
+            //log in dialog
+            // $("#account_dialog").dialog("open");
+
+        }
+    }
+    function submitdaju() {
+        // append alert message to user
+        // appendalert("daju");
+
+        check = $('input[type="radio"]:checked').val();
+        if (check == null) {
+            return alert("請選擇時序設定!");
+        } else {
+            $("#control_strategy").val(time_setting_name[check]);
+            $(".choose").css("visibility", "hidden");
+            //log in dialog
+            // $("#account_dialog").dialog("open");
+
+        }
+    }
+    // Append alert message to div
+    function appendalert(project_name) {
+        var htmll = "";
+        var style = {
+            1: "info",
+            2: "success",
+            3: "warning"
+        };
+        var status = {
+            1: "中",
+            2: "成功",
+            3: "失敗"
+        }
+        console.log(intersection_name);
+        for (var j = 1; j <= 3; j++) {
+            for (var i = 0; i < project_name_array[project_name].length; i++) {
+                htmll += `<div class="alert ${style[j]}" style="display:none;" id="corner_${style[j]}_${project_name_array[project_name][i]}">
+                            <span class="closebtn">&times;</span>
+                            <strong>${intersection_name[project_name_array[project_name][i]]}</strong>狀態變更${status[j]}!`;
+                if (j == 1) {
+                    htmll += '<img style="float: none;" src="img/loading.gif">';
+                }
+                htmll += '</div>';
+                $("#alert").html(htmll)
+            }
+        }
+        closebtn();
+    }
+    // Alert message's close btn 
+    function closebtn() {
+        var close = document.getElementsByClassName("closebtn");
+        var i;
+        for (i = 0; i < close.length; i++) {
+            close[i].onclick = function () {
+                var div = this.parentElement;
+                div.style.opacity = "0";
+                setTimeout(function () {
+                    div.style.display = "none";
+                }, 600);
+            }
+        }
+    }
+
+    function createNewCoordinateForTwoWayRoad(start_latitude, start_longitude, end_latitude, end_longitude) {
+        var shift_fact = 0.00004;
+        var start = math.matrix([start_longitude, start_latitude]);
+        var end = math.matrix([end_longitude, end_latitude]);
+        var angle = 90; //right-hand traffic => 90 ; left-hand traffic => -90
+
+        var theta = angle / 180 * math.pi; // angle to arc
+        var rotation_matrix = math.matrix([
+            [math.cos(theta), math.sin(theta)],
+            [-math.sin(theta), math.cos(theta)]
+        ]);
+        var vec = math.subtract(end, start);
+        var vec_norm = math.divide(vec, math.norm(vec));
+        var shift_vec = math.multiply(rotation_matrix, vec_norm, shift_fact);
+        var new_start = math.add(start, shift_vec);
+        var new_end = math.add(end, shift_vec);
+
+        var road_coordinate = {};
+        road_coordinate["start_longitude"] = new_start._data[0];
+        road_coordinate["start_latitude"] = new_start._data[1];
+        road_coordinate["end_longitude"] = new_end._data[0];
+        road_coordinate["end_latitude"] = new_end._data[1];
+        return road_coordinate;
+    }
+
+    /**
+    function redrawSpeedLine(intersection_id, obj) {
+        // Remove the old speed status line from the map first if it exists.
+        if (speed_line_group[intersection_id + obj.sub_intersection_id]) {
+            speed_line_group[intersection_id + obj.sub_intersection_id].remove(map);
+        }
+
+        if (route_path[intersection_id + "_" + obj.sub_intersection_id]) {
+            // Create the speed status lines with new coordinates of the offset path.
+            speed_line_group[intersection_id + obj.sub_intersection_id] = L.polyline(route_path[intersection_id + "_" + obj.sub_intersection_id], {
+                color: color[obj.flow_out_speed],
+                weight: 8
+            }).addTo(map);
+        }
+    }**/
+
+    function redrawSpeedLine(intersection_id, obj) {
+        // Remove the old speed status line from the map first if it exists.
+        if (speed_line_group[intersection_id + "_forward"]) {
+            speed_line_group[intersection_id + "_forward"].remove(map);
+        }
+
+        if (speed_line_group[intersection_id + "_reverse"]) {
+            speed_line_group[intersection_id + "_reverse"].remove(map);
+        }
+
+        if (route_path[intersection_id + "_forward_route_to_connected"]) {
+            // Create the speed status lines with new coordinates of the offset path.
+            speed_line_group[intersection_id + "_forward"] = L.polyline(route_path[intersection_id + "_forward_route_to_connected"], {
+                color: color[obj.forward_speed_status],
+                weight: 8
+            }).addTo(map);
+        }
+
+        if (route_path[intersection_id + "_reverse_route_to_connected"]) {
+            // Create the speed status lines with new coordinates of the offset path.
+            speed_line_group[intersection_id + "_reverse"] = L.polyline(route_path[intersection_id + "_reverse_route_to_connected"], {
+                color: color[obj.reverse_speed_status],
+                weight: 8
+            }).addTo(map);
+        }
+    }
+</script>
+
+</html>

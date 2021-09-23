@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    username: ${PG_USER}
+    password: ${PG_PWD}
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://pgsql:5432/${PG_DB}
+  data:
+    mongodb:
+      host: mongodb
+      port: 27017
+      database: ${MONGODB_DB}
+      username: ${MONGODB_USER}
+      password: ${MONGODB_PWD}
+  redis:
+    host: redis
+    port: 6379
+    password: ${REDIS_PWD}
+    lettuce:
+      shutdown-timeout: 100
+      pool:
+        max-active: 8
+        max-idle: 8
+        max-wait: 100
+        min-idle: 0
+logging:
+  config: classpath:logback-prod.xml
